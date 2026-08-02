@@ -48,7 +48,8 @@ npx vercel dev               # http://localhost:3000
 | `npm run build`     | Build de production dans `dist/`                  |
 | `npm run preview`   | Prévisualise le build de production               |
 | `npm run typecheck` | Vérifie les types (`tsc --noEmit`, `src` + `api`) |
-| `npm run visuels`   | Régénère les visuels produits de `public/produits/` |
+| `npm run photos`    | Génère les **vraies photos** produit (Gemini, clé requise) |
+| `npm run visuels`   | Régénère les **placeholders SVG** de `public/produits/` |
 
 ## Le widget — parcours
 
@@ -162,10 +163,41 @@ réellement utilisé pour chaque génération.
 
 ## Visuels produits
 
-`public/produits/*.svg` sont des **placeholders générés** (`npm run visuels`),
-pas des photos. Le rendu IA restera de faible qualité tant que de vraies photos
-produit ne seront pas déposées : voir `public/produits/README.md` pour la
-procédure de remplacement (même slug, extension `.jpg`).
+Deux niveaux, et une bascule automatique entre les deux.
+
+`visuelArticle()` (`src/data/catalogue.ts`) sert `public/produits/<slug>.jpg` et
+retombe sur `<slug>.svg` par `onError` tant que la photo n'existe pas. Le jour
+où les photos sont déposées, **la vitrine, le carrousel du widget, l'en-tête de
+catégorie et la planche de rendu basculent dessus sans une ligne de code à
+changer** — le catalogue ne référence qu'un seul chemin.
+
+```bash
+npm run visuels                          # placeholders SVG (aucune dépendance)
+GOOGLE_API_KEY=... npm run photos        # vraies photos, ce qui manque
+GOOGLE_API_KEY=... npm run photos -- --force   # tout régénérer
+GOOGLE_API_KEY=... npm run photos -- c1 v2     # seulement ces articles
+```
+
+Le prompt de chaque photo est **dérivé des métadonnées de l'article** — famille,
+matière, couleur, coupe, `descriptionRendu`. L'image et sa fiche ne peuvent donc
+pas diverger : c'est la fiche qui décrit l'image. Le script applique la même
+cascade de modèles que le serveur et reprend les manquantes à chaque relance.
+
+> Tant que les photos ne sont pas générées, la fidélité de l'essayage IA reste
+> limitée : le modèle image reproduit ce qu'il voit sur la référence produit, et
+> un aplat vectoriel ne porte ni matière ni tombé.
+
+## La vitrine
+
+`src/App.tsx` compose la page de démonstration : en-tête éditorial Costumes
+(`CategoryHero`), grille filtrable de la catégorie (`ProductGrid`), puis les
+familles Vestes & blazers, Pantalons et Chemises (`SectionCategorie`). Le widget
+propose des tenues complètes ; la boutique montre les mêmes familles.
+
+Chaque carte porte les métadonnées d'une fiche réelle : couleur et nom, matière
+et coupe (« Laine Super 110s Tailored Fit »), prix barré/remisé, badge Réduction
+ou Nouveauté, et le nuancier des coloris **réellement au catalogue** sous ce nom
+(`declinaisons()` — aucun coloris inventé).
 
 ## Administration des prompts — `/admin`
 

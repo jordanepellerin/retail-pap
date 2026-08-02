@@ -6,10 +6,9 @@ import {
   declinaisons,
   formatPrix,
   pastilleCouleur,
-  sousTitreArticle,
-  surErreurVisuel,
-  visuelArticle
+  sousTitreArticle
 } from '../data/catalogue'
+import VisuelProduit from './VisuelProduit'
 
 type Tri = 'recommande' | 'prix-croissant' | 'prix-decroissant'
 
@@ -28,17 +27,14 @@ const NOUVEAUTES = new Set(['v4', 'c8', 'p3', 'h4'])
 export function CarteProduit({ article }: { article: Article }) {
   const remise = REMISES[article.id]
   const nouveaute = NOUVEAUTES.has(article.id)
-  const { src, secours } = visuelArticle(article)
   const coloris = declinaisons(article)
 
   return (
     <article className="group">
       <div className="relative aspect-[3/4] overflow-hidden bg-gris-clair">
-        <img
-          src={src}
-          alt={`${article.nom} — ${article.couleur}`}
+        <VisuelProduit
+          article={article}
           loading="lazy"
-          onError={(e) => surErreurVisuel(e, secours)}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />
         {remise ? (

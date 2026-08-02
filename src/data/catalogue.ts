@@ -17,23 +17,13 @@ export function formatPrix(euros: number): string {
  * Visuel d'un article : la photo si elle a été générée, le SVG sinon.
  *
  * Le catalogue ne référence qu'un chemin (`image`, en `.svg`). Tant que
- * `npm run photos` n'a pas tourné, `<slug>.jpg` n'existe pas et l'interface
- * retombe sur le SVG via `onError`. Le jour où les photos sont déposées, le
- * site bascule dessus sans une ligne de code à changer.
+ * `npm run photos` n'a pas tourné, `<slug>.jpg` n'existe pas. Le repli est
+ * assuré par le composant `VisuelProduit`, qui seul doit consommer cette
+ * fonction : le jour où les photos sont déposées, le site bascule dessus sans
+ * une ligne de code à changer.
  */
 export function visuelArticle(article: Article): { src: string; secours: string } {
   return { src: article.image.replace(/\.svg$/, '.jpg'), secours: article.image }
-}
-
-/** Bascule une balise `<img>` sur le visuel de secours, une seule fois. */
-export function surErreurVisuel(
-  e: { currentTarget: HTMLImageElement },
-  secours: string
-): void {
-  const img = e.currentTarget
-  if (img.dataset.secoursApplique === '1') return
-  img.dataset.secoursApplique = '1'
-  img.src = secours
 }
 
 export const LIBELLES_COUPE: Record<NonNullable<Article['coupe']>, string> = {
