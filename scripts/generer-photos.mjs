@@ -150,6 +150,10 @@ EXIGENCES :
 - image nette, sujet centré, entièrement dans le cadre, sans recadrage sur un détail ;
 - fond uni et sobre, aucun décor, aucun accessoire non demandé, aucune autre personne.
 
+CADRAGE — règles strictes, ce sont les deux erreurs les plus fréquentes :
+- VUE DE FACE UNIQUEMENT. Le mannequin regarde l'objectif, on voit l'avant du vêtement : boutonnage, revers, col. Jamais de dos, jamais de profil, jamais de trois quarts arrière.
+- La TÊTE ENTIÈRE du mannequin est dans le cadre, visage compris. Ne coupe jamais au niveau du cou ni du menton : soit la tête est entièrement visible, soit le cadrage démarre nettement sous les épaules.
+
 INTERDITS : aucun logo, aucune marque, aucun texte, aucun filigrane, aucun cartouche de prix, aucun collage ni bordure.`
 }
 
