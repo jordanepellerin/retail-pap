@@ -153,6 +153,11 @@ capable au plus sûr, et ne parie sur rien :
    erreur qui ne vient pas du modèle (prompt ou schéma invalide) remonte
    immédiatement : elle se reproduirait à l'identique partout.
 
+Les listes par défaut ont été confrontées à l'API avec la clé du projet
+(02/08/2026, 58 modèles ouverts) : l'analyse part de `gemini-3.1-pro-preview`,
+l'essayage de `gemini-3-pro-image` (Nano Banana Pro), et chaque repli existe
+bel et bien — aucun aller-retour dépensé dans le vide.
+
 Avec une clé gratuite, la cascade descend d'elle-même vers les modèles GA. Les
 variables `ANALYZE_MODEL` et `RENDER_MODEL` acceptent une liste séparée par des
 virgules, placée en tête des défauts — de quoi épingler un modèle sans toucher

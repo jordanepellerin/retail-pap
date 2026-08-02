@@ -15,11 +15,16 @@ import { GoogleGenAI } from '@google/genai'
 // modèle est renommé, une ouverture dépend du palier de facturation. Figer un
 // identifiant, c'est accepter que tous les appels échouent le jour où il change.
 
+// Listes calées sur un relevé réel de `models.list` avec la clé du projet
+// (02/08/2026, 58 modèles) : `gemini-3-flash` n'existe pas — c'est
+// `gemini-3-flash-preview`, déjà dépassé par les Flash 3.5/3.6 en GA.
+
 /** Lecture de la demande et reformulation : raisonnement + sortie JSON. */
 const ANALYZE_DEFAUTS = [
   'gemini-3.1-pro-preview',
   'gemini-3-pro-preview',
-  'gemini-3-flash',
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
   'gemini-2.5-pro',
   'gemini-2.5-flash'
 ]
@@ -28,6 +33,7 @@ const ANALYZE_DEFAUTS = [
 const RENDER_DEFAUTS = [
   'gemini-3-pro-image',
   'gemini-3-pro-image-preview',
+  'gemini-3.1-flash-image',
   'gemini-2.5-flash-image'
 ]
 
