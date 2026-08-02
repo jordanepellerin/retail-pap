@@ -29,14 +29,14 @@ function EchangePasse({
           .join(' · ')
   return (
     <div className="anim-bubble">
-      <p className="font-sans text-[12px] font-light text-gris-texte">{question.label}</p>
+      <p className="font-sans text-[12px] font-light text-ardoise">{question.label}</p>
       <button
         type="button"
         onClick={onModifier}
-        className="mt-1 inline-flex max-w-full items-center gap-2 border border-white/15 bg-white/[0.04] px-3 py-1.5 text-left font-sans text-[12.5px] text-white transition-colors hover:border-sable"
+        className="mt-1 inline-flex max-w-full items-center gap-2 border border-filet bg-blanc px-3 py-1.5 text-left font-sans text-[12.5px] text-encre transition-colors hover:border-bordeaux"
       >
         <span className="truncate">{reponse}</span>
-        <span className="shrink-0 font-sans text-[10px] uppercase tracking-[0.1em] text-sable">
+        <span className="shrink-0 font-sans text-[10px] uppercase tracking-[0.1em] text-bordeaux">
           Modifier
         </span>
       </button>
@@ -76,7 +76,7 @@ export default function StepQualify({ state, dispatch }: StepQualifyProps) {
 
       {/* Fil des échanges déjà faits */}
       {posees.length > 0 && (
-        <div className="mb-5 space-y-3 border-l border-white/10 pl-4">
+        <div className="mb-5 space-y-3 border-l border-filet pl-4">
           {posees.map((q) => (
             <EchangePasse
               key={q.id}

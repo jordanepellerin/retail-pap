@@ -4,7 +4,7 @@
       <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.13"/>
     </filter>
   </defs>
-  <rect width="600" height="800" fill="#F4F2EF"/>
+  <rect width="600" height="800" fill="#F4F1EA"/>
   <g filter="url(#ombre)">
     <g transform="translate(-24,54) scale(0.62)"><g id="moitie"><path d="M184 190 L106 212 C96 215 90 225 92 235 L116 468 C117 480 128 487 139 485 L200 475 C211 473 217 464 215 454 L196 232 Z" fill="#3F4146" stroke="#000" stroke-opacity="0.10" stroke-width="2"/><path d="M300 150 C276 150 258 157 246 168 L186 196 C178 200 174 208 175 217 L190 340 L184 606 C184 613 189 618 196 618 L300 618 Z" fill="#55575C" stroke="#000" stroke-opacity="0.10" stroke-width="2"/><path d="M204 452 L266 441 L268 456 L206 467 Z" fill="#323438" opacity="0.5"/></g><use href="#moitie" transform="translate(600,0) scale(-1,1)"/><path d="M300 150 L256 168 L300 352 L344 168 Z" fill="#EFEDE7"/>
     <path d="M300 150 L256 168 L276 306 L300 262 Z" fill="#323438"/>

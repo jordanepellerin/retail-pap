@@ -48,7 +48,7 @@ export default function StepOutfit({ state, dispatch }: StepOutfitProps) {
       </Subtext>
 
       {nb > 0 && (
-        <ul className="mt-5 divide-y divide-white/8 border-y border-white/10">
+        <ul className="mt-5 divide-y divide-filet border-y border-filet">
           {tenue.map((a) => (
             <li key={a.id} className="flex items-center gap-3 py-3">
               <VignetteArticle article={a} taille={48} />
@@ -57,7 +57,7 @@ export default function StepOutfit({ state, dispatch }: StepOutfitProps) {
                 type="button"
                 onClick={() => dispatch({ type: 'RETIRER_ARTICLE', id: a.id })}
                 aria-label={`Retirer ${a.nom}`}
-                className="flex h-8 w-8 shrink-0 items-center justify-center border border-white/15 text-[14px] text-gris-texte transition-colors hover:border-white/40 hover:text-white"
+                className="flex h-8 w-8 shrink-0 items-center justify-center border border-filet text-[14px] text-ardoise transition-colors hover:border-encre hover:text-encre"
               >
                 ×
               </button>
@@ -68,10 +68,10 @@ export default function StepOutfit({ state, dispatch }: StepOutfitProps) {
 
       {nb > 0 && (
         <div className="mt-3 flex items-baseline justify-between">
-          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-gris-texte">
+          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-ardoise">
             Total
           </span>
-          <span className="font-serif text-[19px] text-white">{formatPrix(totalTenue(tenue))}</span>
+          <span className="font-serif text-[19px] text-encre">{formatPrix(totalTenue(tenue))}</span>
         </div>
       )}
 
@@ -81,7 +81,7 @@ export default function StepOutfit({ state, dispatch }: StepOutfitProps) {
           {alertes.map((a) => (
             <li
               key={a}
-              className="border-l-2 border-sable/60 pl-3 font-sans text-[12px] font-light leading-relaxed text-white/70"
+              className="border-l-2 border-bordeaux/60 pl-3 font-sans text-[12px] font-light leading-relaxed text-ardoise"
             >
               {a}
             </li>
@@ -91,11 +91,11 @@ export default function StepOutfit({ state, dispatch }: StepOutfitProps) {
 
       <div className="mt-auto space-y-3 pt-7">
         {confirmation ? (
-          <div className="anim-bubble border border-sable/40 bg-sable/[0.07] p-4">
-            <p className="font-serif text-[15px] leading-snug text-white">
+          <div className="anim-bubble border border-bordeaux/40 bg-bordeaux/[0.06] p-4">
+            <p className="font-serif text-[15px] leading-snug text-encre">
               Je lance la génération avec {nb} pièce{nb > 1 ? 's' : ''}&nbsp;?
             </p>
-            <p className="mt-1.5 font-sans text-[12px] font-light leading-relaxed text-white/70">
+            <p className="mt-1.5 font-sans text-[12px] font-light leading-relaxed text-ardoise">
               Comptez une vingtaine de secondes. Vous pourrez revenir modifier votre tenue ensuite.
             </p>
             <div className="mt-4 space-y-2.5">

@@ -4,19 +4,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Identité André Laurent : noir/blanc/gris chauds, un seul accent sable.
+        // Identité André Laurent — « encre & craie » : bleu-encre profond, blanc
+        // craie chaud, accent bordeaux. C'est l'accord du vestiaire masculin
+        // (costume marine, cravate grenadine) — délibérément à l'opposé du
+        // registre noir/or d'une galerie.
         // Toute valeur ajoutée ici doit l'être aussi dans src/index.css (:root).
-        'noir-encre': '#0A0A0A',
-        'blanc-pur': '#FFFFFF',
-        sable: '#C2AD8C',
-        'gris-clair': '#F4F2EF',
-        'gris-texte': '#6B6B6B',
-        'gris-bordure': '#E3E0DB',
-        'rouge-solde': '#8B1E1E'
+        encre: '#16202E',
+        'encre-clair': '#24344A',
+        craie: '#F4F1EA',
+        blanc: '#FFFFFF',
+        ardoise: '#5C6675',
+        filet: '#DAD5CA',
+        bordeaux: '#7B2D3B',
+        'bordeaux-clair': '#9A414E'
       },
       fontFamily: {
-        serif: ['"Playfair Display"', 'Georgia', 'serif'],
-        sans: ['Montserrat', 'system-ui', 'sans-serif']
+        serif: ['Spectral', 'Georgia', 'serif'],
+        sans: ['Archivo', 'system-ui', 'sans-serif']
       },
       maxWidth: {
         content: '1440px'

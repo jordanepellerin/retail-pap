@@ -64,7 +64,7 @@ export default function StepLead({ state, dispatch }: StepLeadProps) {
         <PrimaryButton type="submit" disabled={!valid || sending}>
           {sending ? 'Envoi en cours…' : 'Envoyer ma tenue'}
         </PrimaryButton>
-        <p className="mt-3 text-center font-sans text-[10px] font-light leading-relaxed text-gris-texte">
+        <p className="mt-3 text-center font-sans text-[10px] font-light leading-relaxed text-ardoise">
           Vos informations ne servent qu’à vous envoyer cette sélection.
         </p>
       </div>

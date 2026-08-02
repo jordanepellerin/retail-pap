@@ -19,13 +19,13 @@ export default function CategoryHero() {
   return (
     <section className="mx-auto max-w-content px-4 sm:px-8">
       <nav aria-label="Fil d'Ariane" className="py-6 font-sans text-[13px]">
-        <a href="/" className="text-gris-texte transition-colors hover:text-noir-encre">
+        <a href="/" className="text-ardoise transition-colors hover:text-encre">
           Accueil
         </a>
-        <span className="px-2 text-gris-texte" aria-hidden="true">
+        <span className="px-2 text-ardoise" aria-hidden="true">
           /
         </span>
-        <span className="text-noir-encre">Costumes</span>
+        <span className="text-encre">Costumes</span>
       </nav>
 
       <div className="grid items-center gap-10 pb-4 lg:grid-cols-2">
@@ -34,7 +34,7 @@ export default function CategoryHero() {
             Costumes
           </h1>
           <div
-            className={`mx-auto mt-7 max-w-[520px] font-sans text-[15px] font-light leading-[1.75] text-gris-texte ${
+            className={`mx-auto mt-7 max-w-[520px] font-sans text-[15px] font-light leading-[1.75] text-ardoise ${
               deplie ? '' : 'max-h-[118px] overflow-hidden texte-replie'
             }`}
           >
@@ -48,13 +48,13 @@ export default function CategoryHero() {
             type="button"
             onClick={() => setDeplie((v) => !v)}
             aria-expanded={deplie}
-            className="mt-5 border-b border-noir-encre pb-1 font-sans text-[12px] font-medium uppercase tracking-[0.16em] text-noir-encre transition-opacity hover:opacity-60"
+            className="mt-5 border-b border-encre pb-1 font-sans text-[12px] font-medium uppercase tracking-[0.16em] text-encre transition-opacity hover:opacity-60"
           >
             {deplie ? 'Réduire' : 'Lire plus'}
           </button>
         </div>
 
-        <div className="order-first aspect-[4/3] w-full overflow-hidden bg-gris-clair lg:order-none">
+        <div className="order-first aspect-[4/3] w-full overflow-hidden bg-craie lg:order-none">
           <img
             src={visuel.image}
             alt={`${visuel.nom} — ${visuel.couleur}`}

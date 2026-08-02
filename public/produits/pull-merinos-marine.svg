@@ -14,7 +14,7 @@
       <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.13"/>
     </filter>
   </defs>
-  <rect width="600" height="800" fill="#F4F2EF"/>
-  <g filter="url(#ombre)"><g id="moitie"><path d="M190 196 L112 224 C102 228 96 238 98 248 L122 466 C123 478 135 485 146 483 L206 472 C217 470 223 461 221 451 L204 236 Z" fill="url(#texS)" stroke="#000" stroke-opacity="0.10" stroke-width="2"/><path d="M300 168 C272 168 250 176 236 188 L190 202 C182 206 178 214 180 223 L196 340 L192 596 C192 604 198 610 206 610 L300 610 Z" fill="url(#texC)" stroke="#000" stroke-opacity="0.10" stroke-width="2"/><rect x="192" y="578" width="108" height="32" fill="#1a2232" opacity="0.45"/></g><use href="#moitie" transform="translate(600,0) scale(-1,1)"/><path d="M256 172 C266 200 334 200 344 172 C330 158 270 158 256 172 Z" fill="#F4F2EF"/>
+  <rect width="600" height="800" fill="#F4F1EA"/>
+  <g filter="url(#ombre)"><g id="moitie"><path d="M190 196 L112 224 C102 228 96 238 98 248 L122 466 C123 478 135 485 146 483 L206 472 C217 470 223 461 221 451 L204 236 Z" fill="url(#texS)" stroke="#000" stroke-opacity="0.10" stroke-width="2"/><path d="M300 168 C272 168 250 176 236 188 L190 202 C182 206 178 214 180 223 L196 340 L192 596 C192 604 198 610 206 610 L300 610 Z" fill="url(#texC)" stroke="#000" stroke-opacity="0.10" stroke-width="2"/><rect x="192" y="578" width="108" height="32" fill="#1a2232" opacity="0.45"/></g><use href="#moitie" transform="translate(600,0) scale(-1,1)"/><path d="M256 172 C266 200 334 200 344 172 C330 158 270 158 256 172 Z" fill="#F4F1EA"/>
          <path d="M256 172 C266 200 334 200 344 172" stroke="#1a2232" stroke-width="9" fill="none"/></g>
 </svg>

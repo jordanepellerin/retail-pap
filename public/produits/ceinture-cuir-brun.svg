@@ -4,13 +4,13 @@
       <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.13"/>
     </filter>
   </defs>
-  <rect width="600" height="800" fill="#F4F2EF"/>
+  <rect width="600" height="800" fill="#F4F1EA"/>
   <g filter="url(#ombre)">
     <path d="M110 372 L120 348 L430 348 L430 452 L120 452 L110 428 Z" fill="#7A5334"/>
     <path d="M120 348 L430 348 L430 372 L120 372 Z" fill="#5A3C24" opacity="0.4"/>
-    <circle cx="160" cy="400" r="7" fill="#F4F2EF"/>
-    <circle cx="196" cy="400" r="7" fill="#F4F2EF"/>
-    <circle cx="232" cy="400" r="7" fill="#F4F2EF"/>
+    <circle cx="160" cy="400" r="7" fill="#F4F1EA"/>
+    <circle cx="196" cy="400" r="7" fill="#F4F1EA"/>
+    <circle cx="232" cy="400" r="7" fill="#F4F1EA"/>
     <rect x="424" y="332" width="92" height="136" rx="10" fill="none" stroke="#48301d" stroke-width="14"/>
     <path d="M470 348 L470 452" stroke="#48301d" stroke-width="10"/></g>
 </svg>

@@ -19,7 +19,7 @@ const SORTIE = join(RACINE, 'public', 'produits')
 
 const W = 600
 const H = 800
-const FOND = '#F4F2EF'
+const FOND = '#F4F1EA'
 
 // ─────────────────────────────── Matières (remplissages)
 

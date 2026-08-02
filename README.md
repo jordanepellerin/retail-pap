@@ -5,10 +5,38 @@ il qualifie la demande d'un visiteur, lui compose une tenue cohérente, puis la
 lui fait **essayer sur sa propre photo**.
 
 La boutique qui l'accueille (`ANDRÉ LAURENT`) est une **marque fictive**. Sa
-mise en page — page catégorie, typographie serif, palette noir/blanc/gris,
-angles droits — reproduit celle d'un site de prêt-à-porter haut de gamme type
+mise en page — page catégorie, grand titre éditorial, angles droits — reproduit
+celle d'un site de prêt-à-porter haut de gamme type
 [johnhenric.com](https://johnhenric.com), pour que le widget soit testé dans un
 contexte réaliste.
+
+## Identité — « encre & craie »
+
+Le design system est propre à cette maison ; il ne partage rien avec le widget
+galerie d'art dont l'architecture est issue (noir, or, serif didone). L'accord
+retenu ici est celui que la boutique vend elle-même : **costume marine, cravate
+bordeaux, chemise craie**.
+
+| Rôle | Jeton | Valeur |
+| ---- | ----- | ------ |
+| Texte, surfaces sombres | `encre` | `#16202E` (bleu-encre, jamais du noir) |
+| Surface sombre élevée | `encre-clair` | `#24344A` |
+| Fond chaud | `craie` | `#F4F1EA` |
+| Texte secondaire | `ardoise` | `#5C6675` |
+| Filets 1 px | `filet` | `#DAD5CA` |
+| Accent unique | `bordeaux` | `#7B2D3B` (CTA, intitulés, prix, promotions) |
+
+Typographie : **Spectral** (serif éditorial, titres et noms de pièces) +
+**Archivo** (grotesque, interface et capitales espacées).
+
+Deux règles tiennent l'ensemble : **angles droits partout** (aucun rayon, hors
+avatar et pastille de confirmation) et **un seul accent** — le bordeaux ne sert
+qu'à ce sur quoi on peut cliquer ou à ce qui coûte de l'argent.
+
+Le widget applique le même système : panneau **craie** sous un bandeau **encre**,
+et non un panneau sombre posé sur une page claire. Les valeurs vivent en double
+dans `tailwind.config.js` (jetons) et `src/index.css` (`:root` + classes
+`.btn-*`, `.chip`, `.field`) — les deux doivent rester synchronisés.
 
 Le widget embarque un **pipeline hybride code + IA** (Google Gemini) : sans clé
 API, il fonctionne en mode démo de bout en bout (intention, questions,

@@ -41,7 +41,7 @@ export default function StepBrief({ state, dispatch }: StepBriefProps) {
         <div className="min-w-0 flex-1">
           <Prompt>{reformulation}</Prompt>
           {conseil && (
-            <p className="anim-bubble mt-3 border-l-2 border-sable/60 pl-3 font-sans text-[13px] font-light leading-relaxed text-white/80">
+            <p className="anim-bubble mt-3 border-l-2 border-bordeaux/60 pl-3 font-sans text-[13px] font-light leading-relaxed text-ardoise">
               {conseil}
             </p>
           )}
@@ -50,21 +50,21 @@ export default function StepBrief({ state, dispatch }: StepBriefProps) {
 
       {liste.length > 0 && (
         <div className="mt-6">
-          <p className="mb-2.5 font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-gris-texte">
+          <p className="mb-2.5 font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-ardoise">
             Ce que je retiens
           </p>
           <div className="flex flex-wrap gap-2">
             {liste.map((c, i) => (
               <span
                 key={`${c.champ}-${c.valeur}`}
-                className="inline-flex items-center gap-2 border border-sable/40 bg-sable/[0.08] py-1.5 pl-3 pr-1.5 font-sans text-[12px] text-white"
+                className="inline-flex items-center gap-2 border border-bordeaux/40 bg-bordeaux/[0.08] py-1.5 pl-3 pr-1.5 font-sans text-[12px] text-encre"
               >
                 {c.label}
                 <button
                   type="button"
                   onClick={() => retirer(i)}
                   aria-label={`Retirer le critère ${c.label}`}
-                  className="flex h-5 w-5 items-center justify-center text-sable transition-colors hover:bg-sable hover:text-noir-encre"
+                  className="flex h-5 w-5 items-center justify-center text-bordeaux transition-colors hover:bg-bordeaux hover:text-white"
                 >
                   ×
                 </button>

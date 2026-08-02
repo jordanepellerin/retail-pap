@@ -77,7 +77,7 @@ export default function WidgetPanel({
   }
 
   const headerBtn =
-    'flex h-8 w-8 items-center justify-center text-white/55 transition-colors hover:bg-white/10 hover:text-white'
+    'flex h-8 w-8 items-center justify-center text-white/60 transition-colors hover:bg-white/10 hover:text-white'
 
   const back = previousStep[state.step]
   const nb = state.tenue.length
@@ -86,18 +86,20 @@ export default function WidgetPanel({
   // lui-même (elle y ferait doublon).
   const afficherBarre = nb > 0 && state.step !== 'done' && state.step !== 'outfit'
 
+  // Panneau clair (craie) sous un bandeau encre : le conseiller est fait de la
+  // même matière que la page, il ne s'y pose pas comme un objet étranger.
   const panelCls = expanded
     ? // Centrage par `inset-0 m-auto` (pas de transform, pour ne pas entrer en
       // conflit avec le transform final de l'animation d'ouverture).
-      'anim-widget-open fixed inset-0 z-50 m-auto flex h-[min(760px,calc(100vh-32px))] w-[min(680px,calc(100vw-32px))] flex-col overflow-hidden border border-sable/30 bg-noir-encre shadow-[0_40px_100px_rgba(0,0,0,0.8)]'
-    : 'anim-widget-open fixed inset-2 z-50 flex flex-col overflow-hidden border border-sable/30 bg-noir-encre shadow-[0_40px_100px_rgba(0,0,0,0.8)] sm:inset-auto sm:bottom-[84px] sm:right-6 sm:h-[600px] sm:max-h-[calc(100vh-120px)] sm:w-[400px] sm:max-w-[calc(100vw-32px)]'
+      'anim-widget-open fixed inset-0 z-50 m-auto flex h-[min(760px,calc(100vh-32px))] w-[min(680px,calc(100vw-32px))] flex-col overflow-hidden border border-encre bg-craie shadow-[0_40px_100px_rgba(22,32,46,0.35)]'
+    : 'anim-widget-open fixed inset-2 z-50 flex flex-col overflow-hidden border border-encre bg-craie shadow-[0_40px_100px_rgba(22,32,46,0.28)] sm:inset-auto sm:bottom-[84px] sm:right-6 sm:h-[600px] sm:max-h-[calc(100vh-120px)] sm:w-[400px] sm:max-w-[calc(100vw-32px)]'
 
   return (
     <>
       {/* Voile sombre en mode agrandi (clic = réduire) */}
       {expanded && (
         <div
-          className="fixed inset-0 z-40 bg-black/50"
+          className="fixed inset-0 z-40 bg-encre/50"
           onClick={() => setExpanded(false)}
           aria-hidden="true"
         />
@@ -110,12 +112,12 @@ export default function WidgetPanel({
         className={panelCls}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-3">
+        <div className="flex shrink-0 items-center justify-between bg-encre px-4 py-3">
           <div className="flex items-center gap-3">
             <Avatar />
             <div className="leading-tight">
               <p className="font-sans text-[13px] font-medium text-white">Conseiller de style</p>
-              <p className="font-sans text-[10px] uppercase tracking-[0.16em] text-sable/80">
+              <p className="font-sans text-[10px] uppercase tracking-[0.16em] text-white/55">
                 André Laurent
               </p>
             </div>
@@ -161,13 +163,13 @@ export default function WidgetPanel({
             type="button"
             onClick={() => dispatch({ type: 'GOTO', step: 'outfit' })}
             aria-label={`Ma tenue — ${nb} pièce${nb > 1 ? 's' : ''}. Voir le récapitulatif.`}
-            className="flex shrink-0 items-center justify-between gap-2 border-b border-sable/15 bg-sable/[0.07] px-4 py-2 text-left transition-colors hover:bg-sable/[0.12]"
+            className="flex shrink-0 items-center justify-between gap-2 border-b border-filet bg-bordeaux/[0.06] px-4 py-2 text-left transition-colors hover:bg-bordeaux/[0.11]"
           >
-            <span className="flex items-center gap-2 font-sans text-[12px] font-medium text-sable">
+            <span className="flex items-center gap-2 font-sans text-[12px] font-medium text-bordeaux">
               <HangerIcon className="h-3.5 w-3.5" />
               Ma tenue · {nb} pièce{nb > 1 ? 's' : ''}
             </span>
-            <span className="font-sans text-[11px] font-light uppercase tracking-[0.12em] text-sable/70">
+            <span className="font-sans text-[11px] font-light uppercase tracking-[0.12em] text-bordeaux/75">
               Voir →
             </span>
           </button>
@@ -180,7 +182,7 @@ export default function WidgetPanel({
               <button
                 type="button"
                 onClick={() => dispatch({ type: 'GOTO', step: back })}
-                className="shrink-0 px-5 pt-4 text-left font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-gris-texte transition-colors hover:text-white"
+                className="shrink-0 px-5 pt-4 text-left font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-ardoise transition-colors hover:text-encre"
               >
                 ‹ Retour
               </button>

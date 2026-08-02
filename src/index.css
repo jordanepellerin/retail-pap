@@ -5,13 +5,14 @@
 /* ───────────────────────── Variables d'identité André Laurent
    Miroir de tailwind.config.js — les deux doivent rester synchronisés. */
 :root {
-  --noir-encre: #0a0a0a;
-  --blanc-pur: #ffffff;
-  --sable: #c2ad8c;
-  --gris-clair: #f4f2ef;
-  --gris-texte: #6b6b6b;
-  --gris-bordure: #e3e0db;
-  --rouge-solde: #8b1e1e;
+  --encre: #16202e;
+  --encre-clair: #24344a;
+  --craie: #f4f1ea;
+  --blanc: #ffffff;
+  --ardoise: #5c6675;
+  --filet: #dad5ca;
+  --bordeaux: #7b2d3b;
+  --bordeaux-clair: #9a414e;
 }
 
 html {
@@ -20,24 +21,25 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Montserrat', system-ui, sans-serif;
+  font-family: 'Archivo', system-ui, sans-serif;
   font-weight: 400;
-  background: var(--blanc-pur);
-  color: var(--noir-encre);
+  background: var(--blanc);
+  color: var(--encre);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* ───────────────────────── Classes réutilisables
-   Registre boutique : angles droits partout, filets de 1 px, capitales espacées. */
+   Registre boutique : angles droits partout, filets de 1 px, capitales espacées.
+   Le widget partage ces classes — il est fait de la même matière que la page. */
 @layer components {
   .eyebrow {
-    @apply font-sans uppercase text-gris-texte text-[11px] tracking-[0.22em] font-medium;
+    @apply font-sans uppercase text-bordeaux text-[11px] tracking-[0.22em] font-medium;
   }
 
   .nav-link {
-    @apply font-sans uppercase text-[11px] tracking-[0.16em] font-medium text-noir-encre/75
-           transition-colors duration-200 hover:text-noir-encre;
+    @apply font-sans uppercase text-[11px] tracking-[0.16em] font-medium text-encre/75
+           transition-colors duration-200 hover:text-bordeaux;
   }
 
   /* Boutons — rectangulaires, jamais arrondis */
@@ -45,42 +47,45 @@ body {
     @apply inline-flex items-center justify-center font-sans uppercase tracking-[0.14em]
            text-[12px] font-medium transition-all duration-200 cursor-pointer select-none;
   }
-  .btn-dark {
-    @apply btn bg-noir-encre text-white hover:bg-black;
+  .btn-encre {
+    @apply btn bg-encre text-white hover:bg-encre-clair;
   }
-  .btn-outline-dark {
-    @apply btn border border-noir-encre text-noir-encre hover:bg-noir-encre hover:text-white;
+  .btn-bordeaux {
+    @apply btn bg-bordeaux text-white hover:bg-bordeaux-clair;
+  }
+  .btn-outline-encre {
+    @apply btn border border-encre text-encre hover:bg-encre hover:text-white;
   }
   .btn-outline-white {
-    @apply btn border border-white/70 text-white hover:bg-white hover:text-noir-encre;
+    @apply btn border border-white/70 text-white hover:bg-white hover:text-encre;
   }
 
   /* Filtre / sous-catégorie de la boutique : rectangle bordé 1 px */
   .chip-boutique {
-    @apply inline-flex items-center border border-gris-bordure px-5 py-3.5 font-sans text-[13px]
-           text-noir-encre transition-colors duration-200 hover:border-noir-encre;
+    @apply inline-flex items-center border border-filet px-5 py-3.5 font-sans text-[13px]
+           text-encre transition-colors duration-200 hover:border-encre hover:bg-craie;
   }
 
   /* Puce cliquable du widget (suggestions, réponses de qualification) */
   .chip {
-    @apply w-full text-left font-sans text-[13.5px] leading-snug text-white
-           border border-white/25 px-4 py-3 transition-all duration-200
-           hover:border-sable hover:bg-sable/10 cursor-pointer;
+    @apply w-full text-left font-sans text-[13.5px] leading-snug text-encre
+           border border-filet bg-blanc px-4 py-3 transition-all duration-200
+           hover:border-encre hover:bg-craie cursor-pointer;
   }
   .chip-active {
-    @apply border-sable bg-sable/15 text-white;
+    @apply border-bordeaux bg-bordeaux/[0.07] text-encre;
   }
 
   /* Champs de saisie du widget */
   .field {
-    @apply w-full bg-[#161616] text-white font-sans text-[14px] px-4 py-3
-           border border-white/20 outline-none transition-colors duration-200
-           placeholder:text-gris-texte focus:border-sable;
+    @apply w-full bg-blanc text-encre font-sans text-[14px] px-4 py-3
+           border border-filet outline-none transition-colors duration-200
+           placeholder:text-ardoise focus:border-bordeaux;
   }
   .field-area {
-    @apply w-full resize-none bg-[#161616] text-white font-sans text-[13px] leading-relaxed
-           px-4 py-3 border border-white/20 outline-none transition-colors
-           duration-200 placeholder:text-gris-texte focus:border-sable;
+    @apply w-full resize-none bg-blanc text-encre font-sans text-[13px] leading-relaxed
+           px-4 py-3 border border-filet outline-none transition-colors
+           duration-200 placeholder:text-ardoise focus:border-bordeaux;
   }
 }
 
@@ -182,11 +187,11 @@ body {
   width: 6px;
 }
 .widget-scroll::-webkit-scrollbar-thumb {
-  background: rgba(194, 173, 140, 0.35);
+  background: rgba(123, 45, 59, 0.3);
 }
 .widget-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(194, 173, 140, 0.35) transparent;
+  scrollbar-color: rgba(123, 45, 59, 0.3) transparent;
 }
 
 /* Description de catégorie repliée : fondu bas façon « lire plus » */

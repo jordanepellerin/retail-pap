@@ -14,7 +14,7 @@ interface Message {
 }
 
 const CHAMP =
-  'w-full border border-white/10 bg-[#1A1A1A] p-4 font-mono text-[12.5px] leading-relaxed text-white outline-none transition-colors focus:border-sable/60'
+  'w-full border border-filet bg-blanc p-4 font-mono text-[12.5px] leading-relaxed text-encre outline-none transition-colors focus:border-bordeaux'
 
 /**
  * Outil interne : édition des prompts du pipeline IA sans redéploiement.
@@ -96,11 +96,11 @@ export default function AdminPrompts() {
   }
 
   return (
-    <div className="min-h-screen bg-noir-encre px-5 py-10 text-white">
+    <div className="min-h-screen bg-craie px-5 py-10 text-encre">
       <div className="mx-auto max-w-[760px]">
         <div className="mb-10 flex flex-col items-center">
-          <Logo large className="text-white" />
-          <p className="mt-2 font-sans text-[11px] uppercase tracking-[0.22em] text-sable">
+          <Logo large className="text-encre" />
+          <p className="mt-2 font-sans text-[11px] uppercase tracking-[0.22em] text-bordeaux">
             Administration des prompts IA
           </p>
         </div>
@@ -119,7 +119,7 @@ export default function AdminPrompts() {
               }}
             />
             {message?.type === 'erreur' && (
-              <p className="font-sans text-[12px] text-red-300">{message.texte}</p>
+              <p className="font-sans text-[12px] text-bordeaux">{message.texte}</p>
             )}
             <PrimaryButton onClick={() => void charger()} disabled={occupe}>
               {occupe ? 'Vérification…' : 'Accéder'}
@@ -136,7 +136,7 @@ export default function AdminPrompts() {
                 value={analyze}
                 onChange={(e) => setAnalyze(e.target.value)}
               />
-              <p className="mt-2 font-sans text-[11px] font-light text-gris-texte">
+              <p className="mt-2 font-sans text-[11px] font-light text-ardoise">
                 Section « TÂCHES » du prompt d'analyse : familles, occasion, matière, couleur,
                 budget, coupe. Placeholders : {'{{DEMANDE}}'}, {'{{CATEGORIES}}'}, {'{{OCCASIONS}}'},{' '}
                 {'{{MATIERES}}'}, {'{{COULEURS}}'}, {'{{MOTS_CLES}}'}. Le schéma JSON de sortie et le
@@ -153,7 +153,7 @@ export default function AdminPrompts() {
                 value={render}
                 onChange={(e) => setRender(e.target.value)}
               />
-              <p className="mt-2 font-sans text-[11px] font-light text-gris-texte">
+              <p className="mt-2 font-sans text-[11px] font-light text-ardoise">
                 Consignes de réalisme textile (tombé, matière, plis, lumière, ombres,
                 superposition). Placeholders : {'{{NOTES}}'}, {'{{PIECES}}'}. La correspondance pièce ↔
                 partie du corps remplacée, et l'interdiction de modifier le visage, la morphologie et le
@@ -171,7 +171,7 @@ export default function AdminPrompts() {
                 value={brief}
                 onChange={(e) => setBrief(e.target.value)}
               />
-              <p className="mt-2 font-sans text-[11px] font-light text-gris-texte">
+              <p className="mt-2 font-sans text-[11px] font-light text-ardoise">
                 Reformulation du besoin + une phrase de conseil, à l'étape de validation avant la
                 sélection. Placeholders : {'{{DEMANDE}}'}, {'{{CRITERES}}'}, {'{{CATEGORIES}}'}. Le format
                 JSON de sortie est verrouillé côté code.
@@ -181,7 +181,7 @@ export default function AdminPrompts() {
             {message && (
               <p
                 className={`font-sans text-[12px] ${
-                  message.type === 'info' ? 'text-sable' : 'text-red-300'
+                  message.type === 'info' ? 'text-ardoise' : 'text-bordeaux'
                 }`}
               >
                 {message.texte}

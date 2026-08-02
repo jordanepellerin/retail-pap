@@ -14,6 +14,6 @@
       <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.13"/>
     </filter>
   </defs>
-  <rect width="600" height="800" fill="#F4F2EF"/>
+  <rect width="600" height="800" fill="#F4F1EA"/>
   <g filter="url(#ombre)"><g id="moitie"><path d="M300 202 L200 202 L193 642 C192 652 198 658 208 658 L266 658 C275 658 281 652 282 643 L300 300 Z" fill="url(#texC)" stroke="#000" stroke-opacity="0.10" stroke-width="2"/><path d="M300 168 L200 168 L200 202 L300 202 Z" fill="url(#texS)" stroke="#000" stroke-opacity="0.10" stroke-width="2"/><path d="M243 210 V652" stroke="#fff" stroke-opacity="0.20" stroke-width="2"/></g><use href="#moitie" transform="translate(600,0) scale(-1,1)"/><path d="M300 202 V300" stroke="#000" stroke-opacity="0.14" stroke-width="2"/></g>
 </svg>

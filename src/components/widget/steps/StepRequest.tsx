@@ -52,7 +52,7 @@ export default function StepRequest({ state, dispatch }: StepRequestProps) {
       </div>
 
       <div className="mt-5">
-        <p className="mb-2.5 font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-gris-texte">
+        <p className="mb-2.5 font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-ardoise">
           Ou partez d’une idée
         </p>
         <div className="space-y-2">
@@ -64,7 +64,7 @@ export default function StepRequest({ state, dispatch }: StepRequestProps) {
               className="chip flex items-center justify-between gap-3"
             >
               {s}
-              <span className="shrink-0 text-sable" aria-hidden="true">
+              <span className="shrink-0 text-bordeaux" aria-hidden="true">
                 →
               </span>
             </button>

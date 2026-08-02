@@ -14,7 +14,7 @@
       <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.13"/>
     </filter>
   </defs>
-  <rect width="600" height="800" fill="#F4F2EF"/>
+  <rect width="600" height="800" fill="#F4F1EA"/>
   <g filter="url(#ombre)"><path d="M104 546 L104 468
       C104 442 120 426 146 420
       C174 413 202 416 222 425

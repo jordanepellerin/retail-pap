@@ -46,15 +46,15 @@ function CarrouselCategorie({
 
   const multiple = matches.length > 1
   const flecheCls =
-    'absolute top-[40%] z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center bg-white/90 text-[20px] text-noir-encre shadow-md transition-colors hover:text-sable sm:flex'
+    'absolute top-[40%] z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center bg-blanc/95 text-[20px] text-encre shadow-md transition-colors hover:text-bordeaux sm:flex'
 
   return (
     <section>
       <div className="mb-2 flex items-baseline justify-between">
-        <h3 className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-sable">
+        <h3 className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-bordeaux">
           {LIBELLES_CATEGORIE[categorie].pluriel}
         </h3>
-        <span className="font-sans text-[11px] font-light text-gris-texte">
+        <span className="font-sans text-[11px] font-light text-ardoise">
           {matches.length} pièce{matches.length > 1 ? 's' : ''}
         </span>
       </div>
@@ -78,7 +78,7 @@ function CarrouselCategorie({
                 {/* object-contain : la pièce est montrée en entier, jamais recadrée */}
                 <div
                   className="aspect-[3/4] w-full"
-                  style={{ background: 'linear-gradient(180deg,#141414,#0D0D0D)' }}
+                  style={{ background: 'linear-gradient(180deg,#FFFFFF,#F4F1EA)' }}
                 >
                   <img
                     src={article.image}
@@ -95,7 +95,7 @@ function CarrouselCategorie({
                     {raisons.slice(0, 2).map((r) => (
                       <span
                         key={r}
-                        className="border border-sable/60 bg-noir-encre/90 px-2.5 py-1 font-sans text-[10px] font-medium text-sable"
+                        className="border border-bordeaux/30 bg-blanc/95 px-2.5 py-1 font-sans text-[10px] font-medium text-bordeaux"
                       >
                         {r}
                       </span>
@@ -103,24 +103,24 @@ function CarrouselCategorie({
                   </div>
                 )}
 
-                <div className="absolute inset-x-0 bottom-0 border-t border-white/10 bg-noir-encre/90 px-4 py-3 backdrop-blur-md">
-                  <p className="font-serif text-[17px] leading-tight text-white">{article.nom}</p>
-                  <p className="mt-1 font-sans text-[12px] font-light text-white/75">
+                <div className="absolute inset-x-0 bottom-0 border-t border-filet bg-blanc/95 px-4 py-3 backdrop-blur-md">
+                  <p className="font-serif text-[17px] leading-tight text-encre">{article.nom}</p>
+                  <p className="mt-1 font-sans text-[12px] font-light text-ardoise">
                     {article.couleur} · {article.matiere}
                   </p>
-                  <p className="mt-1 font-sans text-[13px] text-sable">{formatPrix(article.prix)}</p>
+                  <p className="mt-1 font-sans text-[13px] text-bordeaux">{formatPrix(article.prix)}</p>
                 </div>
 
                 <span
                   className={`pointer-events-none absolute inset-0 ring-2 ring-inset transition-colors ${
-                    actif ? 'ring-sable' : 'ring-transparent'
+                    actif ? 'ring-bordeaux' : 'ring-transparent'
                   }`}
                 />
                 <span
                   className={`absolute right-3 top-3 flex h-7 w-7 items-center justify-center text-[14px] transition-colors ${
                     actif
-                      ? 'bg-sable text-noir-encre'
-                      : 'border border-white/60 bg-noir-encre/80 text-white'
+                      ? 'bg-bordeaux text-white'
+                      : 'border border-encre/30 bg-blanc/90 text-encre'
                   }`}
                   aria-hidden="true"
                 >
@@ -161,7 +161,7 @@ function CarrouselCategorie({
                 onClick={() => allerA(i)}
                 aria-label={`Voir la pièce ${i + 1}`}
                 className={`h-1.5 transition-all ${
-                  i === idx ? 'w-5 bg-sable' : 'w-1.5 bg-white/30 hover:bg-white/50'
+                  i === idx ? 'w-5 bg-bordeaux' : 'w-1.5 bg-encre/20 hover:bg-encre/40'
                 }`}
               />
             ))}
@@ -266,7 +266,7 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
               className="group relative shrink-0"
             >
               <VignetteArticle article={a} taille={48} />
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center bg-noir-encre text-[11px] text-white opacity-0 transition-opacity group-hover:opacity-100">
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center bg-encre text-[11px] text-white opacity-0 transition-opacity group-hover:opacity-100">
                 ×
               </span>
             </button>
@@ -277,7 +277,7 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
       {notice && (
         <p
           role="status"
-          className="anim-bubble mt-3 border-l-2 border-sable bg-sable/[0.08] px-3 py-2 font-sans text-[12px] font-light leading-relaxed text-white/85"
+          className="anim-bubble mt-3 border-l-2 border-bordeaux bg-bordeaux/[0.08] px-3 py-2 font-sans text-[12px] font-light leading-relaxed text-encre"
         >
           {notice}
         </p>
@@ -294,7 +294,7 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
           />
         ))}
         {affichees.length === 0 && (
-          <p className="font-sans text-[13px] font-light leading-relaxed text-gris-texte">
+          <p className="font-sans text-[13px] font-light leading-relaxed text-ardoise">
             Aucune pièce ne correspond à tous vos critères. Revenez en arrière pour en assouplir un.
           </p>
         )}
@@ -305,7 +305,7 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
           <button
             type="button"
             onClick={() => setVisible((v) => v + PAR_PAGE)}
-            className="w-full text-center font-sans text-[12px] font-medium uppercase tracking-[0.14em] text-sable transition-colors hover:text-white"
+            className="w-full text-center font-sans text-[12px] font-medium uppercase tracking-[0.14em] text-bordeaux transition-colors hover:text-bordeaux-clair"
           >
             Voir {restantes} famille{restantes > 1 ? 's' : ''} de plus →
           </button>

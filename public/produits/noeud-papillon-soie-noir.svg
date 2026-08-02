@@ -18,7 +18,7 @@
       <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.13"/>
     </filter>
   </defs>
-  <rect width="600" height="800" fill="#F4F2EF"/>
+  <rect width="600" height="800" fill="#F4F1EA"/>
   <g filter="url(#ombre)"><g id="moitie"><path d="M296 328 L206 292 C195 288 184 296 184 308 L184 392 C184 404 195 412 206 408 L296 372 Z" fill="url(#texC)"/></g><use href="#moitie" transform="translate(600,0) scale(-1,1)"/><path d="M296 328 L206 292 C195 288 184 296 184 308 L184 350 L296 350 Z" fill="url(#texS)" opacity="0.3"/>
      <rect x="282" y="318" width="36" height="64" rx="8" fill="#121213"/></g>
 </svg>

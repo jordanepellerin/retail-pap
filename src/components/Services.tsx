@@ -27,12 +27,12 @@ const ARGUMENTS = [
 export default function Services({ onOpenWidget }: ServicesProps) {
   return (
     <>
-      <section className="border-y border-gris-bordure bg-gris-clair">
+      <section className="border-y border-filet bg-craie">
         <div className="mx-auto grid max-w-content gap-8 px-4 py-14 sm:px-8 md:grid-cols-3">
           {ARGUMENTS.map((a) => (
             <div key={a.titre}>
-              <h3 className="font-serif text-[21px] text-noir-encre">{a.titre}</h3>
-              <p className="mt-2 font-sans text-[13.5px] font-light leading-relaxed text-gris-texte">
+              <h3 className="font-serif text-[21px] text-encre">{a.titre}</h3>
+              <p className="mt-2 font-sans text-[13.5px] font-light leading-relaxed text-ardoise">
                 {a.texte}
               </p>
             </div>
@@ -45,11 +45,11 @@ export default function Services({ onOpenWidget }: ServicesProps) {
         <h2 className="mx-auto mt-3 max-w-[640px] font-serif text-[34px] leading-[1.15] sm:text-[42px]">
           Vous ne savez pas par où commencer&nbsp;?
         </h2>
-        <p className="mx-auto mt-5 max-w-[560px] font-sans text-[15px] font-light leading-[1.75] text-gris-texte">
+        <p className="mx-auto mt-5 max-w-[560px] font-sans text-[15px] font-light leading-[1.75] text-ardoise">
           Dites-nous l’occasion, la matière et le budget. Nous composons la tenue, et vous l’essayez
           sur votre propre photo avant de commander.
         </p>
-        <button type="button" onClick={onOpenWidget} className="btn-dark mt-8 px-9 py-4">
+        <button type="button" onClick={onOpenWidget} className="btn-encre mt-8 px-9 py-4">
           Composer ma tenue
         </button>
       </section>

@@ -50,7 +50,7 @@ export default function StepPhoto({ state, dispatch }: StepPhotoProps) {
 
       <div className="mt-5 space-y-3">
         {state.photo ? (
-          <div className="overflow-hidden border border-sable/30 bg-black">
+          <div className="overflow-hidden border border-filet bg-craie">
             <img
               src={state.photo}
               alt="Aperçu de votre photo"
@@ -59,28 +59,28 @@ export default function StepPhoto({ state, dispatch }: StepPhotoProps) {
             <button
               type="button"
               onClick={() => dispatch({ type: 'SET_PHOTO', value: null })}
-              className="w-full bg-[#161616] py-2 font-sans text-[11px] uppercase tracking-[0.14em] text-gris-texte transition-colors hover:text-white"
+              className="w-full border-t border-filet bg-blanc py-2 font-sans text-[11px] uppercase tracking-[0.14em] text-ardoise transition-colors hover:text-encre"
             >
               Changer la photo
             </button>
           </div>
         ) : (
-          <label className="flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-sable/40 bg-white/[0.02] px-6 py-9 text-center transition-colors hover:border-sable/70 hover:bg-white/[0.04]">
+          <label className="flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-bordeaux/40 bg-blanc px-6 py-9 text-center transition-colors hover:border-bordeaux hover:bg-bordeaux/[0.04]">
             <input type="file" accept="image/*" className="sr-only" onChange={onFile} />
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-sable/50 text-[18px] text-sable">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-bordeaux/50 text-[18px] text-bordeaux">
               ↑
             </span>
-            <span className="mt-3 font-sans text-[14px] font-medium text-white">
+            <span className="mt-3 font-sans text-[14px] font-medium text-encre">
               Choisir une photo
             </span>
-            <span className="mt-1 font-sans text-[11px] font-light text-gris-texte">
+            <span className="mt-1 font-sans text-[11px] font-light text-ardoise">
               JPG, PNG · Votre photo reste privée
             </span>
           </label>
         )}
 
         {erreur && (
-          <p className="text-center font-sans text-[12px] font-light text-red-300">
+          <p className="text-center font-sans text-[12px] font-light text-bordeaux">
             Cette image n’a pas pu être lue — essayez un JPG ou un PNG.
           </p>
         )}
@@ -89,7 +89,7 @@ export default function StepPhoto({ state, dispatch }: StepPhotoProps) {
           <button
             type="button"
             onClick={() => void integrer(EXEMPLE_IMAGE)}
-            className="w-full text-center font-sans text-[12px] font-light text-gris-texte underline-offset-4 transition-colors hover:text-sable hover:underline"
+            className="w-full text-center font-sans text-[12px] font-light text-ardoise underline-offset-4 transition-colors hover:text-bordeaux hover:underline"
           >
             Pas de photo sous la main ? Essayer sur une silhouette →
           </button>

@@ -22,21 +22,21 @@ export default function Nav() {
   const [menuOuvert, setMenuOuvert] = useState(false)
 
   return (
-    <header className="sticky top-0 z-30 border-b border-gris-bordure bg-blanc-pur">
+    <header className="sticky top-0 z-30 border-b border-filet bg-blanc">
       <div className="relative flex h-[72px] items-center justify-between px-4 sm:px-8">
         <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => setMenuOuvert(true)}
             aria-label="Ouvrir le menu"
-            className="text-noir-encre transition-opacity hover:opacity-60"
+            className="text-encre transition-opacity hover:opacity-60"
           >
             <MenuIcon className="h-6 w-6" />
           </button>
           <button
             type="button"
             aria-label="Rechercher"
-            className="text-noir-encre transition-opacity hover:opacity-60"
+            className="text-encre transition-opacity hover:opacity-60"
           >
             <SearchIcon className="h-[22px] w-[22px]" />
           </button>
@@ -44,7 +44,7 @@ export default function Nav() {
 
         <a
           href="/"
-          className="absolute left-1/2 -translate-x-1/2 text-noir-encre"
+          className="absolute left-1/2 -translate-x-1/2 text-encre"
           aria-label="André Laurent — accueil"
         >
           <Logo large className="hidden sm:inline" />
@@ -57,15 +57,15 @@ export default function Nav() {
             aria-label="Changer de langue — français"
             className="flex items-center gap-1 transition-opacity hover:opacity-60"
           >
-            <FlagFrIcon className="h-4 w-6 border border-gris-bordure" />
-            <span className="text-[10px] text-noir-encre" aria-hidden="true">
+            <FlagFrIcon className="h-4 w-6 border border-filet" />
+            <span className="text-[10px] text-encre" aria-hidden="true">
               ▾
             </span>
           </button>
           <button
             type="button"
             aria-label="Panier"
-            className="text-noir-encre transition-opacity hover:opacity-60"
+            className="text-encre transition-opacity hover:opacity-60"
           >
             <BagIcon className="h-6 w-6" />
           </button>
@@ -76,19 +76,19 @@ export default function Nav() {
       {menuOuvert && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-black/40"
+            className="fixed inset-0 z-40 bg-encre/40"
             onClick={() => setMenuOuvert(false)}
             aria-hidden="true"
           />
           <nav
             aria-label="Navigation principale"
-            className="fixed inset-y-0 left-0 z-50 flex w-[min(340px,85vw)] flex-col bg-blanc-pur px-7 py-6 shadow-[0_0_60px_rgba(0,0,0,0.2)]"
+            className="fixed inset-y-0 left-0 z-50 flex w-[min(340px,85vw)] flex-col bg-blanc px-7 py-6 shadow-[0_0_60px_rgba(0,0,0,0.2)]"
           >
             <button
               type="button"
               onClick={() => setMenuOuvert(false)}
               aria-label="Fermer le menu"
-              className="self-end text-noir-encre transition-opacity hover:opacity-60"
+              className="self-end text-encre transition-opacity hover:opacity-60"
             >
               <CloseIcon className="h-6 w-6" />
             </button>
@@ -97,14 +97,14 @@ export default function Nav() {
                 <li key={r}>
                   <a
                     href="/"
-                    className="block border-b border-gris-bordure py-3.5 font-serif text-[20px] text-noir-encre transition-colors hover:text-gris-texte"
+                    className="block border-b border-filet py-3.5 font-serif text-[20px] text-encre transition-colors hover:text-ardoise"
                   >
                     {r}
                   </a>
                 </li>
               ))}
             </ul>
-            <p className="mt-auto font-sans text-[11px] font-light leading-relaxed text-gris-texte">
+            <p className="mt-auto font-sans text-[11px] font-light leading-relaxed text-ardoise">
               Livraison et retours offerts · Fabrication européenne
             </p>
           </nav>

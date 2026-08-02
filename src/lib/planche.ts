@@ -11,9 +11,9 @@ import { drawGradientRect } from './gradient'
 
 const L = 900
 const H = 1200
-const FOND = '#F4F2EF'
-const ENCRE = '#0A0A0A'
-const SABLE = '#C2AD8C'
+const FOND = '#F4F1EA'
+const ENCRE = '#16202E'
+const BORDEAUX = '#7B2D3B'
 
 /** Dessine une image en mode « contain » dans un rectangle. */
 function dessinerContain(
@@ -59,12 +59,12 @@ export async function composerPlanche(articles: Article[], sousTitre: string): P
   // En-tête
   ctx.textAlign = 'center'
   ctx.fillStyle = ENCRE
-  ctx.font = "600 40px Georgia, 'Times New Roman', serif"
+  ctx.font = "600 40px Spectral, Georgia, serif"
   ctx.fillText('ANDRÉ LAURENT', L / 2, 78)
-  ctx.fillStyle = SABLE
+  ctx.fillStyle = BORDEAUX
   ctx.fillRect(L / 2 - 40, 98, 80, 2)
-  ctx.fillStyle = '#6B6B6B'
-  ctx.font = '300 20px system-ui, sans-serif'
+  ctx.fillStyle = '#5C6675'
+  ctx.font = '300 20px Archivo, system-ui, sans-serif'
   ctx.fillText(tronquer(ctx, sousTitre, L - 120), L / 2, 138)
 
   // Grille : 1, 2 ou 3 colonnes selon le nombre de pièces — une pièce seule
@@ -97,16 +97,16 @@ export async function composerPlanche(articles: Article[], sousTitre: string): P
     } else {
       drawGradientRect(ctx, article.gradient, x, y, largeurCase, hauteurVisuel)
     }
-    ctx.strokeStyle = '#E3E0DB'
+    ctx.strokeStyle = '#DAD5CA'
     ctx.lineWidth = 1
     ctx.strokeRect(x + 0.5, y + 0.5, largeurCase - 1, hauteurVisuel - 1)
 
     ctx.textAlign = 'left'
     ctx.fillStyle = ENCRE
-    ctx.font = "500 21px Georgia, 'Times New Roman', serif"
+    ctx.font = "500 21px Spectral, Georgia, serif"
     ctx.fillText(tronquer(ctx, article.nom, largeurCase), x, y + hauteurVisuel + 30)
-    ctx.fillStyle = '#6B6B6B'
-    ctx.font = '300 15px system-ui, sans-serif'
+    ctx.fillStyle = '#5C6675'
+    ctx.font = '300 15px Archivo, system-ui, sans-serif'
     ctx.fillText(
       tronquer(ctx, `${article.couleur} · ${formatPrix(article.prix)}`, largeurCase),
       x,
@@ -118,10 +118,10 @@ export async function composerPlanche(articles: Article[], sousTitre: string): P
   const total = articles.reduce((s, a) => s + a.prix, 0)
   ctx.textAlign = 'center'
   ctx.fillStyle = ENCRE
-  ctx.font = '500 18px system-ui, sans-serif'
+  ctx.font = '500 18px Archivo, system-ui, sans-serif'
   ctx.fillText(`Total de la tenue — ${formatPrix(total)}`, L / 2, H - 52)
-  ctx.fillStyle = '#6B6B6B'
-  ctx.font = '300 14px system-ui, sans-serif'
+  ctx.fillStyle = '#5C6675'
+  ctx.font = '300 14px Archivo, system-ui, sans-serif'
   ctx.fillText('Visuel non contractuel', L / 2, H - 28)
 
   return canvas.toDataURL('image/png')

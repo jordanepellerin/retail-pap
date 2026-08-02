@@ -108,10 +108,10 @@ export default function StepMatching({ state, dispatch }: StepMatchingProps) {
               style={{ opacity: i <= active ? 1 : 0.4 }}
             >
               <span
-                className={`h-2 w-2 shrink-0 rounded-full bg-sable ${current ? 'anim-pulse-dot' : ''}`}
+                className={`h-2 w-2 shrink-0 rounded-full bg-bordeaux ${current ? 'anim-pulse-dot' : ''}`}
                 style={{ opacity: done || current ? 1 : 0.5 }}
               />
-              <span className="font-sans text-[14px] font-light text-white">{ligne}</span>
+              <span className="font-sans text-[14px] font-light text-encre">{ligne}</span>
             </div>
           )
         })}
