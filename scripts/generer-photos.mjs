@@ -67,7 +67,13 @@ const MODELES = (process.env.RENDER_MODEL ?? '')
 // interrompt le script au lieu de produire une image fausse).
 
 function lireCatalogue() {
-  const source = readFileSync(join(RACINE, 'src', 'data', 'catalogue.ts'), 'utf-8')
+  // Normalisé en \n : sous Windows, git checkout out en CRLF (\r\n) selon la
+  // config locale (core.autocrlf), et les motifs ci-dessous cherchent des \n
+  // littéraux — sans cette normalisation, aucun article n'est trouvé.
+  const source = readFileSync(join(RACINE, 'src', 'data', 'catalogue.ts'), 'utf-8').replace(
+    /\r\n/g,
+    '\n'
+  )
   const debut = source.indexOf('export const CATALOGUE')
   const fin = source.indexOf('\n]', debut)
   if (debut < 0 || fin < 0) throw new Error('CATALOGUE introuvable dans catalogue.ts')
