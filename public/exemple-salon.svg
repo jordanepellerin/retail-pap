@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EFEAE1"/>
+      <stop offset="1" stop-color="#E1DACE"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#CDB994"/>
+      <stop offset="1" stop-color="#B89F79"/>
+    </linearGradient>
+    <radialGradient id="vig" cx="0.5" cy="0.4" r="0.8">
+      <stop offset="0.55" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.14"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Mur -->
+  <rect width="1200" height="900" fill="url(#wall)"/>
+  <!-- Sol -->
+  <rect y="662" width="1200" height="238" fill="url(#floor)"/>
+  <!-- Plinthe -->
+  <rect y="650" width="1200" height="14" fill="#D6CBB8"/>
+
+  <!-- Ombre douce sous la console -->
+  <ellipse cx="600" cy="666" rx="270" ry="16" fill="#000000" opacity="0.12"/>
+
+  <!-- Console -->
+  <rect x="372" y="598" width="456" height="13" rx="3" fill="#6E5A3E"/>
+  <rect x="392" y="611" width="14" height="52" fill="#5B4A32"/>
+  <rect x="794" y="611" width="14" height="52" fill="#5B4A32"/>
+
+  <!-- Lampe (à gauche de la console) -->
+  <ellipse cx="470" cy="598" rx="30" ry="7" fill="#4A3D29"/>
+  <rect x="466" y="548" width="8" height="50" fill="#7A6647"/>
+  <path d="M442 508 L498 508 L486 550 L454 550 Z" fill="#E7D3A8"/>
+
+  <!-- Vase + branches (à droite de la console) -->
+  <path d="M694 598 C688 570 690 552 704 552 C718 552 720 570 714 598 Z" fill="#8A6E4A"/>
+  <path d="M704 552 C700 520 690 500 672 486" fill="none" stroke="#7C8A5C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M704 552 C708 522 720 504 742 494" fill="none" stroke="#7C8A5C" stroke-width="4" stroke-linecap="round"/>
+  <path d="M704 552 C704 528 706 512 708 500" fill="none" stroke="#7C8A5C" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Plante au sol (à droite) -->
+  <path d="M1050 662 L1074 662 L1068 620 L1056 620 Z" fill="#8A6E4A"/>
+  <path d="M1062 620 C1040 596 1034 566 1044 540" fill="none" stroke="#6E7E50" stroke-width="6" stroke-linecap="round"/>
+  <path d="M1062 620 C1084 598 1092 570 1086 542" fill="none" stroke="#6E7E50" stroke-width="6" stroke-linecap="round"/>
+  <path d="M1062 622 C1060 596 1062 566 1064 544" fill="none" stroke="#6E7E50" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Emplacement vide pour l'œuvre (aligné sur le cadre du rendu : 27% / 14% / 46% / 40%) -->
+  <rect x="324" y="126" width="552" height="360" fill="#FFFFFF" fill-opacity="0.22" stroke="#B79E78" stroke-width="3" stroke-dasharray="12 9"/>
+  <line x1="324" y1="126" x2="876" y2="486" stroke="#B79E78" stroke-width="1.5" stroke-opacity="0.5"/>
+  <line x1="876" y1="126" x2="324" y2="486" stroke="#B79E78" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="600" y="300" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="30" fill="#8A7654" letter-spacing="3">VOTRE ŒUVRE ICI</text>
+  <text x="600" y="336" text-anchor="middle" font-family="system-ui, sans-serif" font-size="17" fill="#8A7654" opacity="0.8" letter-spacing="1">emplacement d'exemple</text>
+
+  <!-- Vignette -->
+  <rect width="1200" height="900" fill="url(#vig)"/>
+</svg>

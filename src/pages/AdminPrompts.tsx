@@ -1,0 +1,201 @@
+import { useState } from 'react'
+import type { AdminPromptsGetResponse, AdminPromptsPostResponse, PromptConfig } from '../types/admin'
+import {
+  ANALYZE_INSTRUCTIONS_MAX,
+  RENDER_INSTRUCTIONS_MAX,
+  JUSTIFY_INSTRUCTIONS_MAX
+} from '../types/admin'
+import Logo from '../components/Logo'
+import { PrimaryButton, SecondaryButton, StepEyebrow } from '../components/widget/ui'
+
+interface Message {
+  type: 'info' | 'erreur'
+  texte: string
+}
+
+const CHAMP =
+  'w-full rounded-lg border border-white/10 bg-[#1A1A1A] p-4 font-mono text-[12.5px] leading-relaxed text-white outline-none transition-colors focus:border-or-bartoux/60'
+
+/**
+ * Outil interne : édition des prompts du pipeline IA sans redéploiement.
+ * Mot de passe partagé (header x-admin-password) — page hors flow du widget.
+ */
+export default function AdminPrompts() {
+  const [motDePasse, setMotDePasse] = useState('')
+  const [deverrouille, setDeverrouille] = useState(false)
+  const [occupe, setOccupe] = useState(false)
+  const [message, setMessage] = useState<Message | null>(null)
+  const [analyze, setAnalyze] = useState('')
+  const [render, setRender] = useState('')
+  const [justify, setJustify] = useState('')
+  const [defauts, setDefauts] = useState<PromptConfig | null>(null)
+
+  const charger = async () => {
+    setOccupe(true)
+    setMessage(null)
+    try {
+      const res = await fetch('/api/admin/prompts', {
+        headers: { 'x-admin-password': motDePasse }
+      })
+      if (res.status === 401) {
+        setMessage({ type: 'erreur', texte: 'Mot de passe invalide.' })
+        return
+      }
+      const json = (await res.json()) as AdminPromptsGetResponse | { ok: false; error: string }
+      if (!json.ok) {
+        setMessage({ type: 'erreur', texte: json.error })
+        return
+      }
+      setAnalyze(json.config.analyzeInstructions)
+      setRender(json.config.renderInstructions)
+      setJustify(json.config.justifyInstructions)
+      setDefauts(json.defaults)
+      setDeverrouille(true)
+    } catch {
+      setMessage({ type: 'erreur', texte: 'Serveur injoignable.' })
+    } finally {
+      setOccupe(false)
+    }
+  }
+
+  const enregistrer = async () => {
+    setOccupe(true)
+    setMessage(null)
+    try {
+      const res = await fetch('/api/admin/prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': motDePasse },
+        body: JSON.stringify({
+          analyzeInstructions: analyze,
+          renderInstructions: render,
+          justifyInstructions: justify
+        })
+      })
+      const json = (await res.json()) as AdminPromptsPostResponse
+      setMessage(
+        json.ok
+          ? { type: 'info', texte: 'Enregistré — appliqué immédiatement, sans redéploiement.' }
+          : { type: 'erreur', texte: json.error }
+      )
+    } catch {
+      setMessage({ type: 'erreur', texte: 'Serveur injoignable.' })
+    } finally {
+      setOccupe(false)
+    }
+  }
+
+  const restaurer = () => {
+    if (!defauts) return
+    setAnalyze(defauts.analyzeInstructions)
+    setRender(defauts.renderInstructions)
+    setJustify(defauts.justifyInstructions)
+    setMessage({
+      type: 'info',
+      texte: 'Valeurs par défaut restaurées — cliquez Enregistrer pour les appliquer.'
+    })
+  }
+
+  return (
+    <div className="min-h-screen bg-noir-bartoux px-5 py-10 text-white">
+      <div className="mx-auto max-w-[760px]">
+        <div className="mb-10 flex flex-col items-center">
+          <Logo large className="text-white" />
+          <p className="mt-2 font-sans text-[11px] uppercase tracking-[0.22em] text-or-bartoux">
+            Administration des prompts IA
+          </p>
+        </div>
+
+        {!deverrouille ? (
+          <div className="mx-auto max-w-[380px] space-y-4">
+            <StepEyebrow>Accès restreint</StepEyebrow>
+            <input
+              type="password"
+              className={CHAMP}
+              placeholder="Mot de passe administrateur"
+              value={motDePasse}
+              onChange={(e) => setMotDePasse(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void charger()
+              }}
+            />
+            {message?.type === 'erreur' && (
+              <p className="font-sans text-[12px] text-red-300">{message.texte}</p>
+            )}
+            <PrimaryButton onClick={() => void charger()} disabled={occupe}>
+              {occupe ? 'Vérification…' : 'Accéder'}
+            </PrimaryButton>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            <section>
+              <StepEyebrow>1 · Compréhension de la demande client (analyse)</StepEyebrow>
+              <textarea
+                className={CHAMP}
+                rows={12}
+                maxLength={ANALYZE_INSTRUCTIONS_MAX}
+                value={analyze}
+                onChange={(e) => setAnalyze(e.target.value)}
+              />
+              <p className="mt-2 font-sans text-[11px] font-light text-gris-texte">
+                Section « TÂCHES » du prompt d'analyse (artistes, zones de placement, échelle).
+                Placeholders : {'{{TYPE}}'}, {'{{RECHERCHE}}'}, {'{{DESCRIPTION}}'}, {'{{ARTISTES}}'},{' '}
+                {'{{VOCABULAIRE}}'}, {'{{AVEC_PHOTO}}'}. Le format JSON de sortie est verrouillé côté
+                code et ne peut pas être cassé d'ici.
+              </p>
+            </section>
+
+            <section>
+              <StepEyebrow>2 · Intégration de l'œuvre dans la photo (rendu)</StepEyebrow>
+              <textarea
+                className={CHAMP}
+                rows={10}
+                maxLength={RENDER_INSTRUCTIONS_MAX}
+                value={render}
+                onChange={(e) => setRender(e.target.value)}
+              />
+              <p className="mt-2 font-sans text-[11px] font-light text-gris-texte">
+                Consignes de placement et de réalisme (échelle, perspective, lumière, ombres, fidélité).
+                Placeholders : {'{{KIND}}'}, {'{{NOTES}}'}. L'emplacement, la largeur du mur et les
+                dimensions réelles de l'œuvre sont ajoutés automatiquement autour de ce texte. Le rendu
+                utilise Nano Banana Pro (Gemini 3 Pro Image).
+              </p>
+            </section>
+
+            <section>
+              <StepEyebrow>3 · Présentation des artistes retenus (justification)</StepEyebrow>
+              <textarea
+                className={CHAMP}
+                rows={9}
+                maxLength={JUSTIFY_INSTRUCTIONS_MAX}
+                value={justify}
+                onChange={(e) => setJustify(e.target.value)}
+              />
+              <p className="mt-2 font-sans text-[11px] font-light text-gris-texte">
+                Reformulation de la demande + une justification par artiste, à l'étape intermédiaire
+                avant la sélection. Placeholders : {'{{TYPE}}'}, {'{{RECHERCHE}}'}, {'{{DESCRIPTION}}'},{' '}
+                {'{{ARTISTES}}'}. Le format JSON de sortie est verrouillé côté code.
+              </p>
+            </section>
+
+            {message && (
+              <p
+                className={`font-sans text-[12px] ${
+                  message.type === 'info' ? 'text-or-bartoux' : 'text-red-300'
+                }`}
+              >
+                {message.texte}
+              </p>
+            )}
+
+            <div className="space-y-3 pt-2">
+              <PrimaryButton onClick={() => void enregistrer()} disabled={occupe}>
+                {occupe ? 'Enregistrement…' : 'Enregistrer'}
+              </PrimaryButton>
+              <SecondaryButton onClick={restaurer}>Restaurer les valeurs par défaut</SecondaryButton>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
