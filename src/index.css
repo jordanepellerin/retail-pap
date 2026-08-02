@@ -2,15 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ───────────────────────── Variables d'identité Galeries Bartoux */
+/* ───────────────────────── Variables d'identité André Laurent
+   Miroir de tailwind.config.js — les deux doivent rester synchronisés. */
 :root {
-  --noir-bartoux: #0a0a0a;
-  --blanc-bartoux: #ffffff;
-  --or-bartoux: #c9a96e;
-  --gris-clair: #f5f5f5;
+  --noir-encre: #0a0a0a;
+  --blanc-pur: #ffffff;
+  --sable: #c2ad8c;
+  --gris-clair: #f4f2ef;
   --gris-texte: #6b6b6b;
-  --gris-bordure: #e0e0e0;
-  --rouge-accent: #8b0000;
+  --gris-bordure: #e3e0db;
+  --rouge-solde: #8b1e1e;
 }
 
 html {
@@ -21,64 +22,65 @@ body {
   margin: 0;
   font-family: 'Montserrat', system-ui, sans-serif;
   font-weight: 400;
-  background: var(--blanc-bartoux);
-  color: var(--noir-bartoux);
+  background: var(--blanc-pur);
+  color: var(--noir-encre);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ───────────────────────── Classes réutilisables */
+/* ───────────────────────── Classes réutilisables
+   Registre boutique : angles droits partout, filets de 1 px, capitales espacées. */
 @layer components {
   .eyebrow {
-    @apply font-sans uppercase text-or-bartoux text-[11px] tracking-[0.25em] font-medium;
-  }
-
-  .section-title {
-    @apply font-serif uppercase tracking-[0.06em] leading-tight;
+    @apply font-sans uppercase text-gris-texte text-[11px] tracking-[0.22em] font-medium;
   }
 
   .nav-link {
-    @apply font-sans uppercase text-[11px] tracking-[0.15em] font-medium text-noir-bartoux/75
-           transition-colors duration-200 hover:text-or-bartoux;
+    @apply font-sans uppercase text-[11px] tracking-[0.16em] font-medium text-noir-encre/75
+           transition-colors duration-200 hover:text-noir-encre;
   }
 
-  /* Boutons */
+  /* Boutons — rectangulaires, jamais arrondis */
   .btn {
-    @apply inline-flex items-center justify-center font-sans uppercase tracking-[0.12em]
+    @apply inline-flex items-center justify-center font-sans uppercase tracking-[0.14em]
            text-[12px] font-medium transition-all duration-200 cursor-pointer select-none;
   }
-  .btn-gold {
-    @apply btn bg-or-bartoux text-noir-bartoux hover:brightness-95;
-  }
   .btn-dark {
-    @apply btn bg-noir-bartoux text-white hover:bg-black;
-  }
-  .btn-outline-white {
-    @apply btn border border-white/70 text-white hover:bg-white hover:text-noir-bartoux;
+    @apply btn bg-noir-encre text-white hover:bg-black;
   }
   .btn-outline-dark {
-    @apply btn border border-noir-bartoux text-noir-bartoux hover:bg-noir-bartoux hover:text-white;
+    @apply btn border border-noir-encre text-noir-encre hover:bg-noir-encre hover:text-white;
+  }
+  .btn-outline-white {
+    @apply btn border border-white/70 text-white hover:bg-white hover:text-noir-encre;
   }
 
-  /* Chips de sélection dans le widget */
+  /* Filtre / sous-catégorie de la boutique : rectangle bordé 1 px */
+  .chip-boutique {
+    @apply inline-flex items-center border border-gris-bordure px-5 py-3.5 font-sans text-[13px]
+           text-noir-encre transition-colors duration-200 hover:border-noir-encre;
+  }
+
+  /* Puce cliquable du widget (suggestions, réponses de qualification) */
   .chip {
-    @apply w-full text-left font-sans text-[14px] text-white border border-or-bartoux/50
-           rounded-lg px-4 py-3 transition-all duration-200
-           hover:border-or-bartoux hover:bg-or-bartoux/10 cursor-pointer;
+    @apply w-full text-left font-sans text-[13.5px] leading-snug text-white
+           border border-white/25 px-4 py-3 transition-all duration-200
+           hover:border-sable hover:bg-sable/10 cursor-pointer;
+  }
+  .chip-active {
+    @apply border-sable bg-sable/15 text-white;
   }
 
   /* Champs de saisie du widget */
   .field {
-    @apply w-full bg-[#1A1A1A] text-white font-sans text-[14px] rounded-lg px-4 py-3
-           border border-or-bartoux/30 outline-none transition-colors duration-200
-           placeholder:text-gris-texte focus:border-or-bartoux;
+    @apply w-full bg-[#161616] text-white font-sans text-[14px] px-4 py-3
+           border border-white/20 outline-none transition-colors duration-200
+           placeholder:text-gris-texte focus:border-sable;
   }
-
-  /* Zone de texte multi-lignes du widget */
   .field-area {
-    @apply w-full resize-none bg-[#1A1A1A] text-white font-sans text-[13px] leading-relaxed
-           rounded-lg px-4 py-3 border border-or-bartoux/30 outline-none transition-colors
-           duration-200 placeholder:text-gris-texte focus:border-or-bartoux;
+    @apply w-full resize-none bg-[#161616] text-white font-sans text-[13px] leading-relaxed
+           px-4 py-3 border border-white/20 outline-none transition-colors
+           duration-200 placeholder:text-gris-texte focus:border-sable;
   }
 }
 
@@ -167,18 +169,6 @@ body {
   animation: pulse-dot 1.2s ease-in-out infinite;
 }
 
-@keyframes kenburns {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(1.08);
-  }
-}
-.anim-kenburns {
-  animation: kenburns 7s ease-out both;
-}
-
 /* Masque la scrollbar (carrousels horizontaux) */
 .no-scrollbar {
   scrollbar-width: none;
@@ -192,12 +182,17 @@ body {
   width: 6px;
 }
 .widget-scroll::-webkit-scrollbar-thumb {
-  background: rgba(201, 169, 110, 0.35);
-  border-radius: 999px;
+  background: rgba(194, 173, 140, 0.35);
 }
 .widget-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(201, 169, 110, 0.35) transparent;
+  scrollbar-color: rgba(194, 173, 140, 0.35) transparent;
+}
+
+/* Description de catégorie repliée : fondu bas façon « lire plus » */
+.texte-replie {
+  -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
 }
 
 /* ───────────────────────── Respect de prefers-reduced-motion */

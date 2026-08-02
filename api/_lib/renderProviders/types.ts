@@ -1,12 +1,12 @@
 // Abstraction des moteurs de rendu : le handler /api/render compose le prompt
-// et valide les entrées ; le provider ne fait que générer l'image harmonisée.
+// et valide les entrées ; le provider ne fait que générer l'essayage.
 
 export interface RenderProviderInput {
-  /** Photo ORIGINALE de l'intérieur (jamais pré-composée) — le modèle y place l'œuvre. */
+  /** Photo ORIGINALE du visiteur — le modèle l'ÉDITE, il ne la recrée pas. */
   photoDataUrl: string
-  /** L'œuvre seule à intégrer — référence de fidélité. */
-  artworkDataUrl: string
-  /** Prompt complet (cadre verrouillé + consignes de placement/réalisme éditables). */
+  /** Visuels produits, dans l'ordre annoncé par le prompt (références de fidélité). */
+  articleDataUrls: string[]
+  /** Prompt complet (cadre verrouillé + consignes de réalisme éditables). */
   promptText: string
 }
 

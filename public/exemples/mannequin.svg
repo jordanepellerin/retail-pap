@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800" role="img" aria-label="Mannequin d'exemple">
+  <defs>
+    <linearGradient id="mur" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#EDEAE4"/>
+      <stop offset="100%" stop-color="#DAD5CC"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#mur)"/>
+  <rect y="690" width="600" height="110" fill="#C9C2B6"/>
+  <ellipse cx="300" cy="706" rx="120" ry="16" fill="#000" fill-opacity="0.10"/>
+  <g fill="#8E8577">
+    <circle cx="300" cy="128" r="52"/>
+    <path d="M300 186 C258 186 232 200 220 226 L196 330 C193 344 202 356 216 358 L232 360 L226 512 C225 524 234 534 246 534 L354 534 C366 534 375 524 374 512 L368 360 L384 358 C398 356 407 344 404 330 L380 226 C368 200 342 186 300 186 Z"/>
+    <path d="M252 534 L246 690 C245 700 252 706 262 706 L288 706 C297 706 303 700 303 691 L300 560 L297 691 C297 700 303 706 312 706 L338 706 C348 706 355 700 354 690 L348 534 Z"/>
+  </g>
+</svg>

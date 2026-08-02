@@ -1,79 +1,145 @@
 // Domaine métier — typage strict, aucun `any`.
 
-import type { AnalyseResult, JustifyResult, MatchResult } from './ai'
+import type { AnalyseResult, BriefResult, MatchResult } from './ai'
 
-/** Catégorie d'œuvre proposée dans le widget. Une seule sélection possible. */
-export type Tag = 'sculpture' | 'peinture'
+/** Famille de produit du catalogue. */
+export type Categorie =
+  | 'costume'
+  | 'veste'
+  | 'pantalon'
+  | 'chemise'
+  | 'maille'
+  | 'chaussures'
+  | 'accessoire'
 
-/** Nombre maximum d'œuvres que le visiteur peut retenir dans sa sélection. */
-export const SELECTION_MAX = 5
+/**
+ * Emplacement occupé sur la silhouette. C'est la base des garde-fous de tenue :
+ * deux articles qui revendiquent le même emplacement ne peuvent pas être portés
+ * ensemble (un costume occupe à lui seul `torse-exterieur` ET `jambes`).
+ */
+export type Slot =
+  | 'torse-exterieur'
+  | 'torse-interieur'
+  | 'jambes'
+  | 'pieds'
+  | 'cou'
+  | 'taille'
+  | 'poche'
+  | 'poignet'
 
-/** Dimensions réelles en centimètres (null = inconnue sur cet axe). */
-export interface OeuvreDims {
-  h: number | null
-  l: number | null
-  p: number | null
+/** Contexte d'usage — premier critère de qualification et premier score du matching. */
+export type Occasion =
+  | 'mariage-invite'
+  | 'mariage-marie'
+  | 'bureau'
+  | 'soiree'
+  | 'ceremonie'
+  | 'quotidien'
+
+export type Coupe = 'slim' | 'tailored' | 'regular'
+
+/** Nombre maximum de pièces dans une tenue (garde-fou de sécurité). */
+export const TENUE_MAX = 8
+
+/** Un article du catalogue André Laurent (données mockées). */
+export interface Article {
+  id: string
+  nom: string
+  categorie: Categorie
+  /** Emplacements occupés — un costume en occupe DEUX. */
+  slots: Slot[]
+  /** Matière affichée, ex. « Lin et coton ». */
+  matiere: string
+  /** Vocabulaire contrôlé pour le matching, ex. ['lin','coton']. */
+  matieres: string[]
+  /** Couleur affichée, ex. « Beige sable ». */
+  couleur: string
+  /** Vocabulaire contrôlé pour le matching, ex. ['beige','ecru']. */
+  couleurs: string[]
+  coupe: Coupe | null
+  /** Prix en euros — nombre, pour filtrer sur le budget (affichage : `formatPrix`). */
+  prix: number
+  tailles: string[]
+  /** Visuel servi statiquement (public/produits/…). */
+  image: string
+  /** Dégradé CSS de secours si le visuel ne charge pas. */
+  gradient: string
+  occasions: Occasion[]
+  motsCles: string[]
+  descriptionCourte: string
+  /**
+   * Formulation injectée telle quelle dans le prompt de rendu — c'est elle qui
+   * dit au modèle image ce qu'il doit faire porter à la personne.
+   */
+  descriptionRendu: string
+  /** ids d'articles qui s'accordent — alimente l'étape « complétez la tenue ». */
+  accords: string[]
 }
 
-export type Orientation = 'portrait' | 'paysage' | 'carre' | 'volume'
-
-/** Une œuvre du catalogue Bartoux (données mockées). */
-export interface Oeuvre {
-  id: string
-  artiste: string
-  titre: string
-  medium: string
-  dimensions: string
-  prix: string
-  tag: Tag
-  /** Dégradé CSS de secours (canvas de téléchargement si la photo ne charge pas). */
-  gradient: string
-  /** Photo de l'œuvre servie statiquement (public/artistes/…). */
-  image: string
-  /** Dimensions machine (cm), saisies à la main depuis `dimensions`. */
-  dims: OeuvreDims
-  orientation: Orientation
-  /** Vocabulaire contrôlé pour le matching (thèmes, sujets, matières). */
-  motsCles: string[]
-  /** Couleurs dominantes de l'œuvre, pour l'accord avec l'intérieur. */
+/**
+ * Besoin normalisé du visiteur. Produit d'abord en pur code
+ * (`src/lib/intent.ts`), affiné par l'IA, complété par les réponses aux
+ * questions de qualification.
+ */
+export interface Intention {
+  categories: Categorie[]
+  occasions: Occasion[]
+  matieres: string[]
   couleurs: string[]
-  /** Une phrase descriptive, utilisée par le scoring et les prompts. */
-  descriptionCourte: string
+  /** Budget maximum en euros pour la pièce principale, null = non exprimé. */
+  budgetMax: number | null
+  coupe: Coupe | null
+  motsCles: string[]
+}
+
+/** Intention vide — base de fusion, jamais mutée. */
+export const INTENTION_VIDE: Intention = {
+  categories: [],
+  occasions: [],
+  matieres: [],
+  couleurs: [],
+  budgetMax: null,
+  coupe: null,
+  motsCles: []
 }
 
 /** Machine d'état du flow conversationnel du widget. */
 export type Step =
   | 'welcome'
-  | 'type'
-  | 'photo'
+  | 'request'
+  | 'qualify'
   | 'matching'
-  | 'presentation'
-  | 'results'
+  | 'brief'
+  | 'selection'
+  | 'photo'
+  | 'outfit'
   | 'render'
   | 'lead'
   | 'done'
 
-/** Cycle de vie de l'appel d'analyse (skipped = pas nécessaire : artiste nommé sans photo). */
+/** Les deux temps de l'étape de sélection. */
+export type PhaseSelection = 'demande' | 'complements'
+
+/** Cycle de vie de l'analyse d'intention (skipped = demande déjà claire en code). */
 export type AnalyseStatus = 'idle' | 'pending' | 'done' | 'error' | 'skipped'
 
-/** Cycle de vie du rendu IA (l'overlay code reste affiché en attendant / en secours). */
+/** Cycle de vie du rendu IA (la planche « flat lay » reste affichée en secours). */
 export interface RenderAIState {
   status: 'idle' | 'pending' | 'done' | 'error'
-  /** dataURL du rendu harmonisé par le modèle image, si status === 'done'. */
+  /** dataURL de l'essayage généré, si status === 'done'. */
   image: string | null
 }
 
 /**
- * Cycle de vie de la justification IA (étape « présentation des artistes »).
- * skipped = aucun artiste à justifier ; error/skipped → repli sur les
- * justifications 100 % code.
+ * Cycle de vie de la reformulation IA (étape `brief`).
+ * error/skipped → repli sur la reformulation 100 % code (`src/lib/brief.ts`).
  */
-export interface JustifyState {
+export interface BriefState {
   status: 'idle' | 'pending' | 'done' | 'error' | 'skipped'
-  result: JustifyResult | null
+  result: BriefResult | null
 }
 
-/** Dimensions en pixels de la photo réduite côté client (sert au calcul d'échelle). */
+/** Dimensions en pixels de la photo réduite côté client. */
 export interface PhotoMeta {
   w: number
   h: number
@@ -82,28 +148,29 @@ export interface PhotoMeta {
 /** État complet de la conversation widget. */
 export interface WidgetState {
   step: Step
-  type: Tag | null
-  /** Précision libre de la recherche (ex. nom d'artiste), saisie à l'étape type (facultatif). */
-  recherche: string
-  /** Photo de l'espace (facultative) : dataURL JPEG réduite ≤ 1280 px. */
+  /** Demande libre saisie à l'étape `request`. */
+  demande: string
+  /**
+   * Réponses aux questions de qualification, indexées par id de question.
+   * Une clé présente avec un tableau vide = question passée (elle n'est plus posée).
+   */
+  reponses: Record<string, string[]>
+  /** Photo du visiteur (facultative) : dataURL JPEG réduite ≤ 1280 px. */
   photo: string | null
-  /** Dimensions pixel de `photo` (null si pas de photo). */
   photoMeta: PhotoMeta | null
-  /** Description libre de l'espace / repère de dimension (facultatif). */
-  description: string
-  /** Résultat de l'analyse IA (photo + intention), null tant que non lancée. */
+  /** Intention affinée par l'IA, null tant que l'appel n'a pas abouti. */
   analyse: AnalyseResult | null
   analyseStatus: AnalyseStatus
   /** Catalogue classé par le scoring code, null tant que le matching n'a pas tourné. */
   matches: MatchResult[] | null
-  /** Reformulation + justifications IA des artistes retenus (repli code si absent). */
-  justify: JustifyState
+  brief: BriefState
   renderAI: RenderAIState
-  /** Sélection multiple du visiteur (ses coups de cœur), plafonnée à SELECTION_MAX. */
-  selection: Oeuvre[]
-  /** Œuvre actuellement visualisée en rendu — toujours un membre de `selection`. */
-  selected: Oeuvre | null
+  /** Temps courant de l'étape de sélection. */
+  phase: PhaseSelection
+  /** La tenue composée — au plus un article par emplacement. */
+  tenue: Article[]
+  /** Articles retirés par le dernier ajout (notice de remplacement, transitoire). */
+  derniersRetires: Article[]
   email: string
-  /** Message libre joint à la demande de contact (facultatif). */
   message: string
 }

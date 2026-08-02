@@ -1,29 +1,28 @@
 // Client des endpoints IA — timeouts stricts, caches par hash (1 analyse par
-// photo+textes, 1 rendu par œuvre×photo, idempotent y compris en StrictMode),
-// et échec silencieux : null → le widget dégrade vers le comportement mock.
+// demande, 1 rendu par photo×tenue, idempotent y compris en StrictMode),
+// et échec silencieux : null → le widget dégrade vers le comportement code.
 
 import type {
   AnalyseResult,
   AnalyzeRequest,
   AnalyzeResponse,
-  JustifyRequest,
-  JustifyResponse,
-  JustifyResult,
+  BriefRequest,
+  BriefResponse,
+  BriefResult,
   RenderRequest,
   RenderResponse
 } from '../types/ai'
-import { sanitizeAnalyse, sanitizeJustify } from '../types/ai'
+import { sanitizeAnalyse, sanitizeBrief } from '../types/ai'
 import { sha256 } from './image'
 
-// Gemini 3.1 Pro (analyse) raisonne davantage que Flash : marge de temps plus
-// large, sous la limite de 60 s des fonctions Vercel.
-const ANALYSE_TIMEOUT_MS = 45_000
+// L'analyse et le brief sont deux appels texte courts ; le rendu image est le
+// seul long, sous la limite de 60 s des fonctions Vercel.
+const ANALYSE_TIMEOUT_MS = 25_000
+const BRIEF_TIMEOUT_MS = 25_000
 const RENDU_TIMEOUT_MS = 55_000
-// La justification est un appel texte court : plafond de temps plus serré.
-const JUSTIFY_TIMEOUT_MS = 30_000
 
 const cacheAnalyse = new Map<string, AnalyseResult>()
-const cacheJustify = new Map<string, JustifyResult>()
+const cacheBrief = new Map<string, BriefResult>()
 const cacheRendu = new Map<string, string>()
 // Requêtes en vol : un second appel identique attend la première réponse.
 const enVol = new Map<string, Promise<unknown>>()
@@ -43,100 +42,72 @@ async function postJson<T>(url: string, body: unknown, timeoutMs: number): Promi
   }
 }
 
+/** Déduplique les appels identiques en vol (StrictMode monte deux fois). */
+async function unique<T>(cle: string, executer: () => Promise<T | null>): Promise<T | null> {
+  const enCours = enVol.get(cle) as Promise<T | null> | undefined
+  if (enCours) return enCours
+  const promesse = executer()
+  enVol.set(cle, promesse)
+  try {
+    return await promesse
+  } finally {
+    enVol.delete(cle)
+  }
+}
+
 /**
- * Analyse photo + intention. Renvoie null en cas d'échec (le matching
- * continue alors en pur code). Une seule requête par combinaison d'entrées.
+ * Extraction d'intention depuis la demande libre. Renvoie null en cas d'échec
+ * (le classement continue alors sur la seule intention détectée en code).
  */
 export async function analyser(req: AnalyzeRequest): Promise<AnalyseResult | null> {
-  const cle = await sha256(JSON.stringify([req.type, req.recherche, req.description, req.photo]))
+  const cle = `analyse:${await sha256(req.demande)}`
   const connue = cacheAnalyse.get(cle)
   if (connue) return connue
 
-  const enCours = enVol.get(cle) as Promise<AnalyseResult | null> | undefined
-  if (enCours) return enCours
-
-  const promesse = (async () => {
+  return unique(cle, async () => {
     const json = await postJson<AnalyzeResponse>('/api/analyze', req, ANALYSE_TIMEOUT_MS)
     if (!json || !json.ok) return null
     // Re-validation côté client : ne jamais faire confiance au réseau.
     const propre = sanitizeAnalyse(json.result)
     if (propre) cacheAnalyse.set(cle, propre)
     return propre
-  })()
-  enVol.set(cle, promesse)
-  try {
-    return await promesse
-  } finally {
-    enVol.delete(cle)
-  }
+  })
 }
 
 /**
- * Reformulation de la demande + justification par artiste (étape « présentation
- * des artistes »). Renvoie null en cas d'échec (l'écran retombe alors sur des
- * justifications 100 % code). Une seule requête par combinaison d'entrées.
+ * Reformulation du besoin. Renvoie null en cas d'échec (l'écran retombe alors
+ * sur la reformulation 100 % code, `lib/brief.ts`).
  */
-export async function justifier(req: JustifyRequest): Promise<JustifyResult | null> {
-  const cle = await sha256(
-    JSON.stringify([req.type, req.recherche, req.description, req.artistes])
-  )
-  const connue = cacheJustify.get(cle)
+export async function reformuler(req: BriefRequest): Promise<BriefResult | null> {
+  const cle = `brief:${await sha256(JSON.stringify([req.demande, req.criteres, req.categories]))}`
+  const connue = cacheBrief.get(cle)
   if (connue) return connue
 
-  const enCours = enVol.get(cle) as Promise<JustifyResult | null> | undefined
-  if (enCours) return enCours
-
-  const promesse = (async () => {
-    const json = await postJson<JustifyResponse>('/api/justify', req, JUSTIFY_TIMEOUT_MS)
+  return unique(cle, async () => {
+    const json = await postJson<BriefResponse>('/api/brief', req, BRIEF_TIMEOUT_MS)
     if (!json || !json.ok) return null
-    // Re-validation côté client : ne jamais faire confiance au réseau.
-    const propre = sanitizeJustify(json.result)
-    if (propre) cacheJustify.set(cle, propre)
+    const propre = sanitizeBrief(json.result)
+    if (propre) cacheBrief.set(cle, propre)
     return propre
-  })()
-  enVol.set(cle, promesse)
-  try {
-    return await promesse
-  } finally {
-    enVol.delete(cle)
-  }
+  })
 }
 
 /**
- * Intégration de l'œuvre dans la photo par le modèle image (Nano Banana Pro).
- * Renvoie la dataURL de l'image, ou null (l'overlay code reste alors affiché).
- * Un seul rendu par œuvre×photo×placement.
+ * Essayage virtuel : la photo du visiteur + les pièces de sa tenue.
+ * Renvoie la dataURL de l'image générée, ou null (la planche de la tenue reste
+ * alors affichée). Un seul rendu par photo × composition de tenue.
  */
 export async function rendre(req: RenderRequest): Promise<string | null> {
-  const cle = await sha256(
-    JSON.stringify([
-      req.photo,
-      req.artwork,
-      req.kind,
-      req.placement,
-      req.planLargeurCm,
-      req.hauteurCm,
-      req.largeurCm,
-      req.cibleHauteurPct,
-      req.cibleLargeurPct
-    ])
-  )
+  const cle = `rendu:${await sha256(
+    JSON.stringify([req.photo, req.articles.map((a) => [a.slots, a.description]), req.notes])
+  )}`
   const connue = cacheRendu.get(cle)
   if (connue) return connue
 
-  const enCours = enVol.get(cle) as Promise<string | null> | undefined
-  if (enCours) return enCours
-
-  const promesse = (async () => {
+  return unique(cle, async () => {
     const json = await postJson<RenderResponse>('/api/render', req, RENDU_TIMEOUT_MS)
     if (!json || !json.ok || !json.image.startsWith('data:image/')) return null
     cacheRendu.set(cle, json.image)
     return json.image
-  })()
-  enVol.set(cle, promesse)
-  try {
-    return await promesse
-  } finally {
-    enVol.delete(cle)
-  }
+  })
 }

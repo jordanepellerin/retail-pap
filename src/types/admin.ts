@@ -1,30 +1,29 @@
 // Types du backend d'administration des prompts (page /admin + api/admin/prompts).
 // Seul le TEXTE d'instructions est éditable — le schéma JSON de l'analyse et le
-// câblage 2-images du rendu (Nano Banana Pro) restent verrouillés dans le code.
+// câblage multi-images du rendu restent verrouillés dans le code.
 
 export interface PromptConfig {
   /**
-   * Corps de la section « TÂCHES » du prompt d'analyse.
-   * Placeholders : {{TYPE}}, {{RECHERCHE}}, {{DESCRIPTION}}, {{ARTISTES}},
-   * {{VOCABULAIRE}}, {{AVEC_PHOTO}}.
+   * Corps de la section « TÂCHES » du prompt d'analyse d'intention.
+   * Placeholders : {{DEMANDE}}, {{CATEGORIES}}, {{OCCASIONS}}, {{MATIERES}},
+   * {{COULEURS}}, {{MOTS_CLES}}.
    */
   analyzeInstructions: string
   /**
-   * Consignes de placement/réalisme du rendu (échelle, perspective, lumière,
-   * ombres, fidélité). Placeholders : {{KIND}}, {{NOTES}}.
+   * Consignes de réalisme de l'essayage (tombé, matière, plis, lumière, ombres).
+   * Placeholders : {{NOTES}}, {{PIECES}}.
    */
   renderInstructions: string
   /**
-   * Corps de la section « TÂCHES » du prompt de justification (présentation des
-   * artistes retenus). Placeholders : {{TYPE}}, {{RECHERCHE}}, {{DESCRIPTION}},
-   * {{ARTISTES}}.
+   * Corps de la section « TÂCHES » du prompt de reformulation.
+   * Placeholders : {{DEMANDE}}, {{CRITERES}}, {{CATEGORIES}}.
    */
-  justifyInstructions: string
+  briefInstructions: string
 }
 
 export const ANALYZE_INSTRUCTIONS_MAX = 6000
 export const RENDER_INSTRUCTIONS_MAX = 3000
-export const JUSTIFY_INSTRUCTIONS_MAX = 4000
+export const BRIEF_INSTRUCTIONS_MAX = 4000
 
 export interface AdminPromptsGetResponse {
   ok: true
@@ -35,7 +34,9 @@ export interface AdminPromptsGetResponse {
 export interface AdminPromptsPostRequest {
   analyzeInstructions: string
   renderInstructions: string
-  justifyInstructions: string
+  briefInstructions: string
 }
 
-export type AdminPromptsPostResponse = { ok: true; config: PromptConfig } | { ok: false; error: string }
+export type AdminPromptsPostResponse =
+  | { ok: true; config: PromptConfig }
+  | { ok: false; error: string }

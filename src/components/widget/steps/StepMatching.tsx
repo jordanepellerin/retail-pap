@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import type { WidgetState } from '../../../types'
 import type { WidgetDispatch } from '../state'
 import { StepEyebrow } from '../ui'
-import { buildMatchContext, rankCatalogue } from '../../../lib/matching'
-import { detectArtistes } from '../../../lib/artistMatch'
-import { artistesRetenus } from '../../../lib/presentation'
-import { analyser, justifier } from '../../../lib/aiClient'
-import { RECHERCHE_MAX, DESCRIPTION_MAX, type AnalyseResult } from '../../../types/ai'
+import { besoinAnalyseIA, detecterIntention, fusionner } from '../../../lib/intent'
+import { appliquerReponses } from '../../../data/questions'
+import { classerArticles, categoriesDemandees } from '../../../lib/matching'
+import { criteres } from '../../../lib/brief'
+import { analyser, reformuler } from '../../../lib/aiClient'
+import { DEMANDE_MAX } from '../../../types/ai'
 
 interface StepMatchingProps {
   state: WidgetState
@@ -15,21 +16,21 @@ interface StepMatchingProps {
 
 const delai = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
+const LIGNES = [
+  'Lecture de votre demande…',
+  'Recherche dans la collection…',
+  'Classement des pièces les plus proches…',
+  'Rédaction de ma compréhension…'
+]
+
 /**
- * Écran de progression réel : les trois lignes correspondent aux vraies phases
- * du pipeline (détection/analyse → scoring → sélection). Chaque ligne reste
- * affichée un minimum de temps pour une lecture confortable.
+ * Écran de progression réel : chaque ligne correspond à une vraie phase du
+ * pipeline. Tout ce qui peut se faire en code se fait en code ; l'IA n'est
+ * appelée que pour ce qu'elle seule sait faire (lire une demande en langage
+ * naturel, puis la reformuler).
  */
 export default function StepMatching({ state, dispatch }: StepMatchingProps) {
   const [active, setActive] = useState(0)
-
-  const pluriel = state.type === 'sculpture' ? 'sculptures' : 'peintures'
-  const lignes = [
-    'Analyse de votre demande…',
-    `Recherche des ${pluriel} dans la collection Bartoux…`,
-    'Sélection des plus belles correspondances…',
-    'Rédaction de votre sélection personnalisée…'
-  ]
 
   useEffect(() => {
     // Le double montage StrictMode relance simplement le pipeline : le flag
@@ -37,69 +38,53 @@ export default function StepMatching({ state, dispatch }: StepMatchingProps) {
     let annule = false
 
     const run = async () => {
-      // ① Détection d'artiste en pur code, puis analyse IA seulement si utile :
-      // photo à interpréter, ou texte libre sans artiste identifié. Le chemin
-      // « artiste nommé, pas de photo » ne coûte aucun appel réseau.
-      const recherche = state.recherche.trim().slice(0, RECHERCHE_MAX)
-      const description = state.description.trim().slice(0, DESCRIPTION_MAX)
-      const artistesCode = detectArtistes(recherche)
-      const besoinIA =
-        state.photo !== null || (recherche.length > 0 && artistesCode.length === 0)
+      const demande = state.demande.trim().slice(0, DEMANDE_MAX)
 
-      let analyse: AnalyseResult | null = null
-      if (besoinIA) {
+      // ① Intention en pur code, puis analyse IA seulement si elle apporte
+      // quelque chose (demande que le code n'a pas su lire entièrement).
+      const codeIntention = detecterIntention(demande)
+      let intention = appliquerReponses(codeIntention, state.reponses)
+
+      if (besoinAnalyseIA(demande, codeIntention)) {
         dispatch({ type: 'ANALYSE_START' })
-        const [resultat] = await Promise.all([
-          analyser({
-            type: state.type ?? 'sculpture',
-            recherche,
-            description,
-            photo: state.photo
-          }),
-          delai(850)
-        ])
+        const [resultat] = await Promise.all([analyser({ demande }), delai(800)])
         if (annule) return
-        analyse = resultat
-        dispatch(resultat ? { type: 'ANALYSE_DONE', value: resultat } : { type: 'ANALYSE_ERROR' })
+        if (resultat) {
+          // Les réponses de l'utilisateur restent prioritaires sur l'IA.
+          intention = appliquerReponses(fusionner(codeIntention, resultat.intent), state.reponses)
+        }
       } else {
-        dispatch({ type: 'ANALYSE_SKIP' })
-        await delai(850)
+        await delai(700)
         if (annule) return
       }
       setActive(1)
 
-      // ② Scoring du catalogue (0 appel réseau).
-      const ctx = buildMatchContext(state, analyse)
-      await delai(850)
+      // ② Classement du catalogue (0 appel réseau).
+      await delai(700)
       if (annule) return
       setActive(2)
-
-      // ③ Classement final.
-      const matches = rankCatalogue(ctx)
+      const matches = classerArticles(intention)
       await delai(500)
       if (annule) return
       dispatch({ type: 'SET_MATCHES', value: matches })
+      // L'intention consolidée devient la source de vérité de l'aval.
+      dispatch({ type: 'ANALYSE_DONE', value: { intent: intention, confiance: 1 } })
 
-      // ④ Justification IA des artistes retenus (reformulation + une phrase par
-      // artiste). Échec ou clé absente → repli sur les justifications code
-      // (construireArtistesPresentes), l'écran reste opérationnel.
+      // ③ Reformulation IA. Échec ou clé absente → repli 100 % code
+      // (`briefCode`), l'écran suivant reste opérationnel.
       setActive(3)
-      const artistes = artistesRetenus(matches)
-      if (artistes.length > 0) {
-        dispatch({ type: 'JUSTIFY_START' })
-        const [justif] = await Promise.all([
-          justifier({ type: state.type ?? 'sculpture', recherche, description, artistes }),
-          delai(600)
-        ])
-        if (annule) return
-        dispatch(justif ? { type: 'JUSTIFY_DONE', value: justif } : { type: 'JUSTIFY_ERROR' })
-      } else {
-        dispatch({ type: 'JUSTIFY_SKIP' })
-        await delai(400)
-        if (annule) return
-      }
-
-      dispatch({ type: 'GOTO', step: 'presentation' })
+      dispatch({ type: 'BRIEF_START' })
+      const [brief] = await Promise.all([
+        reformuler({
+          demande,
+          criteres: criteres(intention).map((c) => c.label),
+          categories: categoriesDemandees(intention)
+        }),
+        delai(600)
+      ])
+      if (annule) return
+      dispatch(brief ? { type: 'BRIEF_DONE', value: brief } : { type: 'BRIEF_ERROR' })
+      dispatch({ type: 'GOTO', step: 'brief' })
     }
     void run()
     return () => {
@@ -113,7 +98,7 @@ export default function StepMatching({ state, dispatch }: StepMatchingProps) {
       <StepEyebrow>Sélection en cours</StepEyebrow>
 
       <div className="space-y-5">
-        {lignes.map((ligne, i) => {
+        {LIGNES.map((ligne, i) => {
           const done = i < active
           const current = i === active
           return (
@@ -123,7 +108,7 @@ export default function StepMatching({ state, dispatch }: StepMatchingProps) {
               style={{ opacity: i <= active ? 1 : 0.4 }}
             >
               <span
-                className={`h-2 w-2 shrink-0 rounded-full bg-or-bartoux ${current ? 'anim-pulse-dot' : ''}`}
+                className={`h-2 w-2 shrink-0 rounded-full bg-sable ${current ? 'anim-pulse-dot' : ''}`}
                 style={{ opacity: done || current ? 1 : 0.5 }}
               />
               <span className="font-sans text-[14px] font-light text-white">{ligne}</span>

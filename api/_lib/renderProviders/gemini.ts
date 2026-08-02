@@ -1,7 +1,6 @@
-// Moteur Nano Banana Pro (Gemini 3 Pro Image) — reçoit DEUX images (1. l'œuvre
-// seule, 2. la photo de l'intérieur) + un prompt de placement, et intègre
-// lui-même l'œuvre dans la pièce (perspective, échelle, lumière, ombres).
-// C'est la méthode validée en AI Studio : rendu photoréaliste en ~20 s.
+// Moteur Nano Banana Pro (Gemini 3 Pro Image) — reçoit la photo du visiteur
+// PUIS un visuel par pièce de la tenue, et remplace lui-même les vêtements
+// correspondants (tombé, plis, lumière, ombres) en préservant la personne.
 
 import { getGemini, dataUrlEnPart, RENDER_MODEL } from '../gemini.js'
 import type { RenderProvider, RenderProviderInput, RenderProviderResult } from './types.js'
@@ -17,12 +16,12 @@ export function creerProviderGemini(): RenderProvider | null {
           contents: [
             {
               role: 'user',
-              // Ordre = édition : (1) la photo de la pièce À CONSERVER, (2) l'œuvre
-              // à y ajouter. La photo en premier ancre le modèle sur la scène
-              // réelle au lieu d'en générer une nouvelle.
+              // Ordre = édition : (1) la photo du client À CONSERVER, (2..n) les
+              // pièces à lui faire porter. La photo en premier ancre le modèle
+              // sur la personne réelle au lieu d'en générer une nouvelle.
               parts: [
                 dataUrlEnPart(input.photoDataUrl),
-                dataUrlEnPart(input.artworkDataUrl),
+                ...input.articleDataUrls.map(dataUrlEnPart),
                 { text: input.promptText }
               ]
             }
@@ -39,7 +38,7 @@ export function creerProviderGemini(): RenderProvider | null {
         return { ok: false, error: "Le modèle n'a pas renvoyé d'image." }
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Erreur inconnue'
-        return { ok: false, error: `Rendu impossible : ${msg}` }
+        return { ok: false, error: `Essayage impossible : ${msg}` }
       }
     }
   }

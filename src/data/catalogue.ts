@@ -1,504 +1,939 @@
-import type { Oeuvre, Tag } from '../types'
+// Catalogue André Laurent — données mockées, enrichies pour le matching
+// (vocabulaire contrôlé de matières/couleurs, occasions) et pour le rendu IA
+// (`descriptionRendu` : la phrase exacte lue par le modèle image).
+//
+// Les visuels sont des SVG stylisés générés par `scripts/generer-visuels.mjs`.
+// Pour passer aux vraies photos produit : déposer `<slug>.jpg` dans
+// public/produits/ et remplacer l'extension ci-dessous (cf. public/produits/README.md).
+
+import type { Article, Categorie, Occasion, Slot } from '../types'
+
+/** Prix formaté à la française, ex. « 1 090 € ». */
+export function formatPrix(euros: number): string {
+  return `${euros.toLocaleString('fr-FR')} €`
+}
+
+/** Emplacements occupés par défaut selon la famille de produit. */
+export const SLOTS_PAR_CATEGORIE: Record<Categorie, Slot[]> = {
+  // Un costume habille le torse ET les jambes : c'est ce qui interdit d'y
+  // ajouter une veste ou un pantalon séparés.
+  costume: ['torse-exterieur', 'jambes'],
+  veste: ['torse-exterieur'],
+  pantalon: ['jambes'],
+  chemise: ['torse-interieur'],
+  maille: ['torse-interieur'],
+  chaussures: ['pieds'],
+  // Les accessoires précisent leur emplacement article par article.
+  accessoire: []
+}
 
 /**
- * Catalogue des œuvres — uniquement les artistes dont les photos officielles
- * sont chargées dans public/artistes/. Aucune image externe, aucun placeholder.
- *
- * Métadonnées machine (`dims`, `motsCles`, `couleurs`, `descriptionCourte`) :
- * saisies à la main, elles alimentent le scoring code (src/lib/matching.ts)
- * et les prompts d'analyse (api/analyze.ts).
+ * `avecArticle` sert aux phrases rédigées (« Vous cherchez un costume… ») :
+ * sans lui, la reformulation enchaîne des noms nus et sonne comme un filtre.
  */
-export const CATALOGUE: Oeuvre[] = [
-  // ───────────────────────── SCULPTURES
-  // Bruno Catalano
+export const LIBELLES_CATEGORIE: Record<
+  Categorie,
+  { singulier: string; pluriel: string; avecArticle: string }
+> = {
+  costume: { singulier: 'Costume', pluriel: 'Costumes', avecArticle: 'un costume' },
+  veste: { singulier: 'Veste', pluriel: 'Vestes & blazers', avecArticle: 'une veste' },
+  pantalon: { singulier: 'Pantalon', pluriel: 'Pantalons', avecArticle: 'un pantalon' },
+  chemise: { singulier: 'Chemise', pluriel: 'Chemises', avecArticle: 'une chemise' },
+  maille: { singulier: 'Maille', pluriel: 'Mailles', avecArticle: 'une pièce en maille' },
+  chaussures: { singulier: 'Chaussures', pluriel: 'Chaussures', avecArticle: 'des chaussures' },
+  accessoire: { singulier: 'Accessoire', pluriel: 'Accessoires', avecArticle: 'un accessoire' }
+}
+
+export const LIBELLES_OCCASION: Record<Occasion, string> = {
+  'mariage-invite': 'un mariage (invité)',
+  'mariage-marie': 'votre mariage',
+  bureau: 'le bureau',
+  soiree: 'une soirée habillée',
+  ceremonie: 'une cérémonie',
+  quotidien: 'le quotidien'
+}
+
+export const LIBELLES_SLOT: Record<Slot, string> = {
+  'torse-exterieur': 'pièce extérieure',
+  'torse-interieur': 'haut',
+  jambes: 'bas',
+  pieds: 'chaussures',
+  cou: 'cravate',
+  taille: 'ceinture',
+  poche: 'pochette',
+  poignet: 'poignet'
+}
+
+const TAILLES_COSTUME = ['46', '48', '50', '52', '54', '56']
+const TAILLES_PANTALON = ['42', '44', '46', '48', '50', '52']
+const TAILLES_CHEMISE = ['37', '38', '39', '40', '41', '42', '43']
+const TAILLES_CHAUSSURE = ['39', '40', '41', '42', '43', '44', '45', '46']
+const TAILLE_UNIQUE = ['Taille unique']
+
+export const CATALOGUE: Article[] = [
+  // ─────────────────────────────── Costumes
   {
-    id: 's1',
-    artiste: 'Bruno Catalano',
-    titre: 'Cristian',
-    medium: 'Bronze',
-    dimensions: 'H 100 cm',
-    prix: '22 000 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(145deg, #8A7B5C, #3A3225)',
-    image: '/artistes/bruno%20catalano/BRUNO-CATALANO-CRISTIAN-H.-100-cm-Bronze-%E2%80%93-2.jpg',
-    dims: { h: 100, l: null, p: null },
-    orientation: 'volume',
-    motsCles: ['voyageur', 'valise', 'homme qui marche', 'bronze fragmenté', 'silhouette', 'voyage'],
-    couleurs: ['bronze', 'orange'],
-    descriptionCourte: 'Voyageur au torse évidé, valise à la main, en marche.'
+    id: 'c1',
+    nom: 'Costume deux-pièces en laine',
+    categorie: 'costume',
+    slots: SLOTS_PAR_CATEGORIE.costume,
+    matiere: 'Laine Super 110s',
+    matieres: ['laine'],
+    couleur: 'Bleu marine',
+    couleurs: ['bleu', 'marine'],
+    coupe: 'tailored',
+    prix: 749,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/costume-laine-marine.svg',
+    gradient: 'linear-gradient(145deg, #2C3A55, #161E2E)',
+    occasions: ['bureau', 'mariage-invite', 'ceremonie', 'soiree'],
+    motsCles: ['classique', 'intemporel', 'bureau', 'mariage', 'quatre saisons'],
+    descriptionCourte:
+      'Le costume de référence : laine peignée bleu marine, veste deux boutons, tombé net en toutes saisons.',
+    descriptionRendu:
+      'un costume deux-pièces en laine bleu marine, veste à deux boutons et revers crantés, pantalon assorti sans revers',
+    accords: ['h1', 'h2', 'a1', 's2', 'a5', 'a4']
   },
   {
-    id: 's2',
-    artiste: 'Bruno Catalano',
-    titre: 'Sarah',
-    medium: 'Bronze',
-    dimensions: 'H 100 cm',
-    prix: '18 500 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(150deg, #6E5F45, #241E14)',
-    image: '/artistes/bruno%20catalano/BRUNO-CATALANO-SARAH-H.-100-cm-Bronze.jpg',
-    dims: { h: 100, l: null, p: null },
-    orientation: 'volume',
-    motsCles: ['voyageuse', 'valise', 'femme qui marche', 'bronze fragmenté', 'silhouette', 'voyage'],
-    couleurs: ['bronze'],
-    descriptionCourte: 'Voyageuse fragmentée portant sa valise, silhouette en mouvement.'
+    id: 'c2',
+    nom: 'Costume deux-pièces en laine froide',
+    categorie: 'costume',
+    slots: SLOTS_PAR_CATEGORIE.costume,
+    matiere: 'Laine froide',
+    matieres: ['laine'],
+    couleur: 'Gris clair',
+    couleurs: ['gris'],
+    coupe: 'slim',
+    prix: 749,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/costume-laine-gris.svg',
+    gradient: 'linear-gradient(145deg, #A8A9AD, #6E7075)',
+    occasions: ['bureau', 'mariage-invite', 'ceremonie'],
+    motsCles: ['léger', 'été', 'clair', 'mariage', 'bureau'],
+    descriptionCourte:
+      "Laine froide gris clair, respirante : la coupe slim d'un costume de ville, la légèreté d'un costume d'été.",
+    descriptionRendu:
+      'un costume deux-pièces en laine froide gris clair, veste cintrée à deux boutons, pantalon droit assorti',
+    accords: ['h1', 'h2', 'a1', 's1', 'a4']
   },
   {
-    id: 's3',
-    artiste: 'Bruno Catalano',
-    titre: 'Hubert au Bandeau',
-    medium: 'Bronze',
-    dimensions: 'H 85 cm',
-    prix: '16 000 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(140deg, #A2916E, #4A3F2C)',
-    image: '/artistes/bruno%20catalano/HUBERT-AU-BANDEAU-%E2%80%93-2-1.jpg',
-    dims: { h: 85, l: null, p: null },
-    orientation: 'volume',
-    motsCles: ['voyageur', 'valise', 'homme qui marche', 'bronze fragmenté', 'bandeau', 'voyage'],
-    couleurs: ['bronze'],
-    descriptionCourte: 'Voyageur au bandeau, corps fragmenté et valise en bronze.'
+    id: 'c3',
+    nom: 'Costume deux-pièces en lin',
+    categorie: 'costume',
+    slots: SLOTS_PAR_CATEGORIE.costume,
+    matiere: 'Lin et coton',
+    matieres: ['lin', 'coton'],
+    couleur: 'Beige sable',
+    couleurs: ['beige', 'ecru'],
+    coupe: 'tailored',
+    prix: 649,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/costume-lin-beige.svg',
+    gradient: 'linear-gradient(145deg, #D8C7A6, #A08F70)',
+    occasions: ['mariage-invite', 'mariage-marie', 'ceremonie', 'quotidien'],
+    motsCles: ['été', 'extérieur', 'mariage', 'chaleur', 'clair', 'méditerranéen'],
+    descriptionCourte:
+      'Mélange lin-coton beige sable, structure souple et froissé noble : le costume des mariages en extérieur.',
+    descriptionRendu:
+      'un costume deux-pièces en lin beige sable, veste déstructurée à deux boutons au froissé naturel, pantalon assorti',
+    accords: ['h4', 'h1', 'a4', 's3', 'a5']
   },
   {
-    id: 's4',
-    artiste: 'Bruno Catalano',
-    titre: 'Raphaël',
-    medium: 'Bronze',
-    dimensions: 'H 140 cm',
-    prix: '38 000 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(145deg, #9A8B68, #3A3025)',
-    image: '/artistes/bruno%20catalano/RAPHAEL-H.140-cm.jpg',
-    dims: { h: 140, l: null, p: null },
-    orientation: 'volume',
-    motsCles: ['voyageur', 'valise', 'homme qui marche', 'bronze fragmenté', 'grand format', 'voyage'],
-    couleurs: ['bronze'],
-    descriptionCourte: 'Grand voyageur fragmenté à la valise, présence monumentale.'
-  },
-  // Andrea Roggi
-  {
-    id: 's5',
-    artiste: 'Andrea Roggi',
-    titre: 'Destinati ad Amarsi',
-    medium: 'Bronze',
-    dimensions: 'H 105 × L 90 × P 72 cm',
-    prix: '28 000 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(160deg, #7C9A68, #221C12)',
-    image: '/artistes/andrea%20roggi/ANDREA-ROGGI-DESTINATI-AD-AMARSI-105-x-90-x-72-cm.jpg',
-    dims: { h: 105, l: 90, p: 72 },
-    orientation: 'volume',
-    motsCles: ['couple', 'amour', 'étreinte', 'cercle', 'bronze'],
-    couleurs: ['bronze', 'vert'],
-    descriptionCourte: 'Couple enlacé inscrit dans un cercle de bronze.'
+    id: 'c4',
+    nom: 'Costume deux-pièces en lin',
+    categorie: 'costume',
+    slots: SLOTS_PAR_CATEGORIE.costume,
+    matiere: 'Lin et coton',
+    matieres: ['lin', 'coton'],
+    couleur: 'Vert olive',
+    couleurs: ['vert', 'olive'],
+    coupe: 'tailored',
+    prix: 649,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/costume-lin-vert.svg',
+    gradient: 'linear-gradient(145deg, #8B8B5E, #575A38)',
+    occasions: ['mariage-invite', 'quotidien', 'ceremonie'],
+    motsCles: ['été', 'extérieur', 'original', 'nature', 'mariage'],
+    descriptionCourte:
+      "Le lin dans un vert olive discret : un costume d'été qui sort du bleu sans jamais crier.",
+    descriptionRendu:
+      'un costume deux-pièces en lin vert olive, veste souple à deux boutons, pantalon assorti à la coupe droite',
+    accords: ['h4', 'h1', 's3', 'a4']
   },
   {
-    id: 's6',
-    artiste: 'Andrea Roggi',
-    titre: "Dove Nasce l'Amore",
-    medium: 'Bronze',
-    dimensions: 'H 83 × L 53 × P 45 cm',
-    prix: '19 500 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(155deg, #6E8B5A, #24301C)',
-    image: '/artistes/andrea%20roggi/ANDREA-ROGGI-DOVE-NASCE-LAMORE-83-x-53-x-45-cm.jpg',
-    dims: { h: 83, l: 53, p: 45 },
-    orientation: 'volume',
-    motsCles: ['couple', 'amour', 'étreinte', 'famille', 'bronze'],
-    couleurs: ['bronze', 'vert'],
-    descriptionCourte: "Naissance de l'amour : deux figures unies en bronze patiné."
+    id: 'c5',
+    nom: 'Costume deux-pièces en flanelle',
+    categorie: 'costume',
+    slots: SLOTS_PAR_CATEGORIE.costume,
+    matiere: 'Flanelle de laine',
+    matieres: ['flanelle', 'laine'],
+    couleur: 'Gris anthracite',
+    couleurs: ['gris', 'anthracite'],
+    coupe: 'tailored',
+    prix: 829,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/costume-flanelle-anthracite.svg',
+    gradient: 'linear-gradient(145deg, #55575C, #2E3034)',
+    occasions: ['bureau', 'ceremonie', 'soiree'],
+    motsCles: ['hiver', 'chaud', 'sombre', 'bureau', 'matière'],
+    descriptionCourte:
+      "Flanelle anthracite au toucher duveteux : la chaleur et la profondeur de matière d'un costume d'hiver.",
+    descriptionRendu:
+      'un costume deux-pièces en flanelle de laine gris anthracite, veste à deux boutons au drapé épais, pantalon assorti',
+    accords: ['h1', 'h2', 'a2', 's1', 'm1']
   },
   {
-    id: 's7',
-    artiste: 'Andrea Roggi',
-    titre: 'Radici di Luce',
-    medium: 'Bronze',
-    dimensions: 'H 109 × L 82 × P 74 cm',
-    prix: '32 000 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(150deg, #8AA06F, #3A4A2C)',
-    image: '/artistes/andrea%20roggi/ANDREA-ROGGI-RADICI-DI-LUCE-109-x-82-x-74-cm.jpg',
-    dims: { h: 109, l: 82, p: 74 },
-    orientation: 'volume',
-    motsCles: ['arbre de vie', 'racines', 'nature', 'cercle', 'bronze'],
-    couleurs: ['bronze', 'vert'],
-    descriptionCourte: "Arbre de vie aux racines de lumière, couronne circulaire."
+    id: 'c6',
+    nom: 'Costume Prince-de-Galles',
+    categorie: 'costume',
+    slots: SLOTS_PAR_CATEGORIE.costume,
+    matiere: 'Laine à carreaux',
+    matieres: ['laine'],
+    couleur: 'Gris et brun',
+    couleurs: ['gris', 'brun'],
+    coupe: 'tailored',
+    prix: 899,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/costume-carreaux-prince-de-galles.svg',
+    gradient: 'linear-gradient(145deg, #9A9186, #5E574D)',
+    occasions: ['bureau', 'mariage-invite', 'ceremonie'],
+    motsCles: ['carreaux', 'motif', 'anglais', 'caractère', 'bureau'],
+    descriptionCourte:
+      'Le Prince-de-Galles, motif anglais par excellence : un costume qui a du caractère sans quitter le registre sobre.',
+    descriptionRendu:
+      'un costume deux-pièces en laine à motif Prince-de-Galles gris et brun, veste à deux boutons, pantalon assorti au même motif',
+    accords: ['h1', 'a2', 's2', 'a5']
   },
   {
-    id: 's8',
-    artiste: 'Andrea Roggi',
-    titre: 'Un Legame Oltre il Visibile',
-    medium: 'Bronze',
-    dimensions: 'H 64 × L 49 × P 37 cm',
-    prix: '14 000 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(155deg, #7A9060, #2A3820)',
-    image: '/artistes/andrea%20roggi/ANDREA-ROGGI-UN-LEGAME-OLTRE-IL-VISIBILE-64-x-49-x-37-cm.jpg',
-    dims: { h: 64, l: 49, p: 37 },
-    orientation: 'volume',
-    motsCles: ['couple', 'amour', 'lien', 'famille', 'bronze'],
-    couleurs: ['bronze', 'vert'],
-    descriptionCourte: 'Lien invisible entre deux êtres, bronze intimiste.'
-  },
-  // Paul Beckrich
-  {
-    id: 's9',
-    artiste: 'Paul Beckrich',
-    titre: 'Dame de Chine Bleue',
-    medium: 'Bronze doré à l’or fin',
-    dimensions: 'H 55 cm',
-    prix: '9 800 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(145deg, #C9A96E, #7A5A2E)',
-    image: '/artistes/paul%20beckrich/BECKRICH-DAME-DE-CHINE-BLEUE-H.55-cm-Bronze-dore-a-lor-fin.jpg',
-    dims: { h: 55, l: null, p: null },
-    orientation: 'volume',
-    motsCles: ['buste', 'féminin', 'doré', 'visage', 'chine'],
-    couleurs: ['doré', 'bleu'],
-    descriptionCourte: 'Buste féminin doré à l’or fin, visage de Chine bleue.'
+    id: 'c7',
+    nom: 'Smoking à revers satin',
+    categorie: 'costume',
+    slots: SLOTS_PAR_CATEGORIE.costume,
+    matiere: 'Laine et soie',
+    matieres: ['laine', 'soie'],
+    couleur: 'Noir',
+    couleurs: ['noir'],
+    coupe: 'slim',
+    prix: 1090,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/smoking-noir.svg',
+    gradient: 'linear-gradient(145deg, #23242A, #0C0D10)',
+    occasions: ['soiree', 'mariage-marie', 'ceremonie'],
+    motsCles: ['smoking', 'gala', 'soirée', 'black tie', 'cérémonie', 'noir'],
+    descriptionCourte:
+      'Revers châle en satin de soie et galon au pantalon : la tenue de soirée, dans les règles.',
+    descriptionRendu:
+      'un smoking noir, veste à un bouton et revers châle en satin de soie brillant, pantalon assorti avec galon de satin sur la couture latérale',
+    accords: ['h6', 'a3', 's1', 'a4']
   },
   {
-    id: 's10',
-    artiste: 'Paul Beckrich',
-    titre: 'Noble Dame de Chine',
-    medium: 'Raku',
-    dimensions: 'H 55 cm',
-    prix: '7 500 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(150deg, #D4B87A, #5A3E1E)',
-    image: '/artistes/paul%20beckrich/BECKRICH-NOBLE-DAME-DE-CHINE-H.-55-cm-Raku.jpg',
-    dims: { h: 55, l: null, p: null },
-    orientation: 'volume',
-    motsCles: ['buste', 'féminin', 'raku', 'céramique', 'visage', 'chine'],
-    couleurs: ['doré', 'brun'],
-    descriptionCourte: 'Noble buste féminin en raku, craquelures précieuses.'
+    id: 'c8',
+    nom: 'Costume en velours',
+    categorie: 'costume',
+    slots: SLOTS_PAR_CATEGORIE.costume,
+    matiere: 'Velours de coton',
+    matieres: ['velours', 'coton'],
+    couleur: 'Bleu nuit',
+    couleurs: ['bleu', 'nuit'],
+    coupe: 'slim',
+    prix: 949,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/costume-velours-bleu-nuit.svg',
+    gradient: 'linear-gradient(145deg, #2A2F4A, #12142A)',
+    occasions: ['soiree', 'ceremonie', 'mariage-marie'],
+    motsCles: ['velours', 'soirée', 'fête', 'matière', 'profond'],
+    descriptionCourte:
+      "Velours bleu nuit qui capte la lumière : l'alternative au smoking pour les soirées où l'on veut être remarqué.",
+    descriptionRendu:
+      'un costume deux-pièces en velours bleu nuit à la surface veloutée qui capte la lumière, veste à un bouton, pantalon assorti',
+    accords: ['h1', 'a3', 's1', 'a4']
+  },
+
+  // ─────────────────────────────── Vestes & blazers
+  {
+    id: 'v1',
+    nom: 'Veste en lin',
+    categorie: 'veste',
+    slots: SLOTS_PAR_CATEGORIE.veste,
+    matiere: 'Lin',
+    matieres: ['lin'],
+    couleur: 'Bleu ciel',
+    couleurs: ['bleu', 'ciel'],
+    coupe: 'tailored',
+    prix: 379,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/veste-lin-bleu.svg',
+    gradient: 'linear-gradient(145deg, #9EB6CC, #62809A)',
+    occasions: ['quotidien', 'mariage-invite', 'bureau'],
+    motsCles: ['été', 'léger', 'clair', 'décontracté', 'extérieur'],
+    descriptionCourte:
+      'Veste en lin bleu ciel, non doublée : elle se porte aussi bien sur un chino que sur un pantalon habillé.',
+    descriptionRendu:
+      'une veste de costume en lin bleu ciel, déstructurée et non doublée, deux boutons, au froissé naturel du lin',
+    accords: ['h1', 'p2', 'p3', 's3', 'a4']
   },
   {
-    id: 's11',
-    artiste: 'Paul Beckrich',
-    titre: 'Samouraï Rouge',
-    medium: 'Bronze doré à l’or fin',
-    dimensions: 'H 55 cm',
-    prix: '10 500 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(145deg, #C04040, #6A1010)',
-    image: '/artistes/paul%20beckrich/BECKRICH-SAMOURAI-ROUGE-H.55-cm-Bronze-dore-a-lor-fin.jpg',
-    dims: { h: 55, l: null, p: null },
-    orientation: 'volume',
-    motsCles: ['buste', 'samouraï', 'doré', 'guerrier', 'japon'],
-    couleurs: ['rouge', 'doré'],
-    descriptionCourte: 'Buste de samouraï rouge et or, force et sérénité.'
-  },
-  // Lorenzo Quinn
-  {
-    id: 's12',
-    artiste: 'Lorenzo Quinn',
-    titre: 'Cœur Bleu',
-    medium: 'Bronze',
-    dimensions: 'H 90 cm',
-    prix: '26 000 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(145deg, #3A6EA5, #12283F)',
-    image: '/artistes/lorenzo%20quinn/COEUR-BLEU.jpg',
-    dims: { h: 90, l: null, p: null },
-    orientation: 'volume',
-    motsCles: ['cœur', 'mains', 'amour', 'émotion', 'bronze'],
-    couleurs: ['bleu', 'bronze'],
-    descriptionCourte: 'Cœur bleu porté par des mains de bronze.'
+    id: 'v2',
+    nom: 'Blazer en laine',
+    categorie: 'veste',
+    slots: SLOTS_PAR_CATEGORIE.veste,
+    matiere: 'Laine',
+    matieres: ['laine'],
+    couleur: 'Bleu marine',
+    couleurs: ['bleu', 'marine'],
+    coupe: 'tailored',
+    prix: 449,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/blazer-laine-marine.svg',
+    gradient: 'linear-gradient(145deg, #2E3C58, #171F31)',
+    occasions: ['bureau', 'quotidien', 'ceremonie', 'mariage-invite'],
+    motsCles: ['blazer', 'polyvalent', 'classique', 'boutons dorés', 'bureau'],
+    descriptionCourte:
+      "Le blazer marine à boutons métal : la pièce qui rattrape n'importe quel pantalon et n'importe quelle journée.",
+    descriptionRendu:
+      'un blazer en laine bleu marine à deux boutons métal dorés, revers crantés, coupe ajustée',
+    accords: ['h2', 'p1', 'p2', 's2', 'a1']
   },
   {
-    id: 's13',
-    artiste: 'Lorenzo Quinn',
-    titre: 'I Give You My Heart (III)',
-    medium: 'Bronze',
-    dimensions: 'H 90 cm',
-    prix: '29 500 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(150deg, #8A6E4A, #2A1E10)',
-    image: '/artistes/lorenzo%20quinn/I-Give-You-My-Heart-III-Bronze-90cm.jpg',
-    dims: { h: 90, l: null, p: null },
-    orientation: 'volume',
-    motsCles: ['cœur', 'mains', 'amour', 'don', 'émotion'],
-    couleurs: ['bronze'],
-    descriptionCourte: 'Main offrant un cœur — le don de soi en bronze.'
+    id: 'v3',
+    nom: 'Veste en lin',
+    categorie: 'veste',
+    slots: SLOTS_PAR_CATEGORIE.veste,
+    matiere: 'Lin',
+    matieres: ['lin'],
+    couleur: 'Rose poudré',
+    couleurs: ['rose'],
+    coupe: 'slim',
+    prix: 379,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/veste-lin-rose.svg',
+    gradient: 'linear-gradient(145deg, #E4C2BC, #B78D87)',
+    occasions: ['mariage-invite', 'quotidien'],
+    motsCles: ['été', 'clair', 'original', 'mariage', 'méditerranéen'],
+    descriptionCourte:
+      'Un rose poudré assumé mais doux, en lin non doublé : la veste des mariages en plein soleil.',
+    descriptionRendu:
+      'une veste de costume en lin rose poudré, déstructurée et non doublée, deux boutons',
+    accords: ['h4', 'p3', 's3', 'a4']
   },
   {
-    id: 's14',
-    artiste: 'Lorenzo Quinn',
-    titre: 'Infinite Emotions',
-    medium: 'Aluminium',
-    dimensions: 'H 37 cm',
-    prix: '13 500 €',
-    tag: 'sculpture',
-    gradient: 'linear-gradient(155deg, #9AA0A6, #3A3E44)',
-    image: '/artistes/lorenzo%20quinn/Infinite-Emotions-37cm-alu-001.jpg',
-    dims: { h: 37, l: null, p: null },
-    orientation: 'volume',
-    motsCles: ['mains', 'infini', 'émotion', 'aluminium', 'petit format'],
-    couleurs: ['argent'],
-    descriptionCourte: 'Mains entrelacées en boucle infinie, aluminium poli.'
+    id: 'v4',
+    nom: 'Veste en tweed',
+    categorie: 'veste',
+    slots: SLOTS_PAR_CATEGORIE.veste,
+    matiere: 'Tweed de laine',
+    matieres: ['tweed', 'laine'],
+    couleur: 'Brun chiné',
+    couleurs: ['brun'],
+    coupe: 'regular',
+    prix: 489,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/veste-tweed-brun.svg',
+    gradient: 'linear-gradient(145deg, #8A7458, #4E4132)',
+    occasions: ['quotidien', 'bureau'],
+    motsCles: ['hiver', 'tweed', 'chaud', 'campagne', 'matière'],
+    descriptionCourte:
+      "Tweed brun chiné aux coudières : la veste d'hiver qui vieillit mieux que vous.",
+    descriptionRendu:
+      'une veste en tweed de laine brun chiné à la texture marquée, trois boutons, coudières en cuir',
+    accords: ['m1', 'p5', 'p1', 's2']
   },
-  // ───────────────────────── PEINTURES
-  // Al Freno
+  {
+    id: 'v5',
+    nom: 'Veste en velours',
+    categorie: 'veste',
+    slots: SLOTS_PAR_CATEGORIE.veste,
+    matiere: 'Velours de coton',
+    matieres: ['velours', 'coton'],
+    couleur: 'Vert forêt',
+    couleurs: ['vert'],
+    coupe: 'slim',
+    prix: 529,
+    tailles: TAILLES_COSTUME,
+    image: '/produits/veste-velours-vert.svg',
+    gradient: 'linear-gradient(145deg, #2F4A3A, #16281D)',
+    occasions: ['soiree', 'ceremonie', 'quotidien'],
+    motsCles: ['velours', 'soirée', 'fête', 'profond', 'original'],
+    descriptionCourte:
+      'Velours vert forêt à revers châle : la veste de dîner qui remplace le smoking sans le trahir.',
+    descriptionRendu:
+      'une veste de smoking en velours vert forêt à revers châle, un bouton, surface veloutée profonde',
+    accords: ['h1', 'p1', 'a3', 's1']
+  },
+
+  // ─────────────────────────────── Pantalons
   {
     id: 'p1',
-    artiste: 'Al Freno',
-    titre: 'I Only Have Eyes For You',
-    medium: 'Huile extra-fine sur toile de lin',
-    dimensions: '150 × 150 cm',
-    prix: '8 200 €',
-    tag: 'peinture',
-    gradient: 'linear-gradient(120deg, #2C3E50, #3498DB, #ECF0F1)',
-    image: '/artistes/al%20freno/AL-FRENO-I-ONLY-HAVE-EYES-FOR-YOU-150-x-150-cm-Blockx-and-Williamsburg-extra-fine-oil-on-linen-canvas.jpg',
-    dims: { h: 150, l: 150, p: null },
-    orientation: 'carre',
-    motsCles: ['figuratif', 'coloré', 'pop', 'regard', 'grand format'],
-    couleurs: ['bleu', 'blanc'],
-    descriptionCourte: 'Grand format figuratif pop, regard intense aux bleus profonds.'
+    nom: 'Pantalon en flanelle',
+    categorie: 'pantalon',
+    slots: SLOTS_PAR_CATEGORIE.pantalon,
+    matiere: 'Flanelle de laine',
+    matieres: ['flanelle', 'laine'],
+    couleur: 'Gris anthracite',
+    couleurs: ['gris', 'anthracite'],
+    coupe: 'tailored',
+    prix: 189,
+    tailles: TAILLES_PANTALON,
+    image: '/produits/pantalon-flanelle-gris.svg',
+    gradient: 'linear-gradient(145deg, #56585D, #2F3135)',
+    occasions: ['bureau', 'ceremonie', 'quotidien'],
+    motsCles: ['hiver', 'chaud', 'habillé', 'sombre'],
+    descriptionCourte:
+      'Flanelle grise, tombé impeccable : le pantalon qui va avec tout ce qui est bleu ou brun.',
+    descriptionRendu:
+      'un pantalon de costume en flanelle de laine gris anthracite, coupe droite, sans revers',
+    accords: ['v2', 'v4', 'h1', 's2', 'a5']
   },
   {
     id: 'p2',
-    artiste: 'Al Freno',
-    titre: 'Jump for Joy',
-    medium: 'Huile sur toile',
-    dimensions: '120 × 120 cm',
-    prix: '6 400 €',
-    tag: 'peinture',
-    gradient: 'linear-gradient(125deg, #1F3346, #4AA3D0)',
-    image: '/artistes/al%20freno/JUMP-FOR-JOY-120-x-120-cm.jpg',
-    dims: { h: 120, l: 120, p: null },
-    orientation: 'carre',
-    motsCles: ['figuratif', 'coloré', 'pop', 'joie', 'mouvement'],
-    couleurs: ['bleu'],
-    descriptionCourte: 'Saut de joie — énergie pop aux bleus lumineux.'
+    nom: 'Chino en coton',
+    categorie: 'pantalon',
+    slots: SLOTS_PAR_CATEGORIE.pantalon,
+    matiere: 'Coton stretch',
+    matieres: ['coton'],
+    couleur: 'Beige',
+    couleurs: ['beige'],
+    coupe: 'slim',
+    prix: 129,
+    tailles: TAILLES_PANTALON,
+    image: '/produits/chino-coton-beige.svg',
+    gradient: 'linear-gradient(145deg, #CBB894, #94825F)',
+    occasions: ['quotidien', 'bureau'],
+    motsCles: ['décontracté', 'chino', 'quotidien', 'clair'],
+    descriptionCourte:
+      'Le chino beige en coton stretch : la base décontractée qui se met sous un blazer sans rougir.',
+    descriptionRendu: 'un chino en coton beige, coupe ajustée, sans pinces',
+    accords: ['v1', 'v2', 'h2', 's4', 'a5']
   },
   {
     id: 'p3',
-    artiste: 'Al Freno',
-    titre: 'Wild World',
-    medium: 'Huile extra-fine sur toile de lin',
-    dimensions: '150 × 150 cm',
-    prix: '7 800 €',
-    tag: 'peinture',
-    gradient: 'linear-gradient(120deg, #274156, #5FB0D8)',
-    image: '/artistes/al%20freno/WILD-WORLD-150-x-150-cm-Blockx-and-Williamsburg-extra-fine-oil-on-linen-canvas-%E2%80%93-1.jpg',
-    dims: { h: 150, l: 150, p: null },
-    orientation: 'carre',
-    motsCles: ['figuratif', 'coloré', 'pop', 'nature', 'grand format'],
-    couleurs: ['bleu'],
-    descriptionCourte: 'Monde sauvage en grand format, huile aux bleus océan.'
+    nom: 'Pantalon en lin',
+    categorie: 'pantalon',
+    slots: SLOTS_PAR_CATEGORIE.pantalon,
+    matiere: 'Lin',
+    matieres: ['lin'],
+    couleur: 'Écru',
+    couleurs: ['ecru', 'beige'],
+    coupe: 'regular',
+    prix: 159,
+    tailles: TAILLES_PANTALON,
+    image: '/produits/pantalon-lin-ecru.svg',
+    gradient: 'linear-gradient(145deg, #E4DAC6, #B3A88F)',
+    occasions: ['quotidien', 'mariage-invite'],
+    motsCles: ['été', 'léger', 'clair', 'extérieur', 'méditerranéen'],
+    descriptionCourte:
+      "Lin écru, coupe fluide : le pantalon d'été qui laisse passer l'air et rattrape le soleil.",
+    descriptionRendu: 'un pantalon en lin écru, coupe droite et fluide, au froissé naturel du lin',
+    accords: ['v1', 'v3', 'h4', 's3']
   },
   {
     id: 'p4',
-    artiste: 'Al Freno',
-    titre: 'Your Love Is King',
-    medium: 'Huile sur toile',
-    dimensions: '120 × 120 cm',
-    prix: '5 900 €',
-    tag: 'peinture',
-    gradient: 'linear-gradient(120deg, #1A2A38, #3A7A9C)',
-    image: '/artistes/al%20freno/YOUR-LOVE-IS-KING-120-x-120-cm.jpg',
-    dims: { h: 120, l: 120, p: null },
-    orientation: 'carre',
-    motsCles: ['figuratif', 'coloré', 'pop', 'amour'],
-    couleurs: ['bleu'],
-    descriptionCourte: 'Déclaration pop et colorée sur toile carrée.'
+    nom: 'Pantalon à pinces en laine',
+    categorie: 'pantalon',
+    slots: SLOTS_PAR_CATEGORIE.pantalon,
+    matiere: 'Laine',
+    matieres: ['laine'],
+    couleur: 'Bleu marine',
+    couleurs: ['bleu', 'marine'],
+    coupe: 'regular',
+    prix: 199,
+    tailles: TAILLES_PANTALON,
+    image: '/produits/pantalon-laine-marine.svg',
+    gradient: 'linear-gradient(145deg, #303E59, #182032)',
+    occasions: ['bureau', 'ceremonie'],
+    motsCles: ['pinces', 'habillé', 'ample', 'bureau'],
+    descriptionCourte:
+      'Deux pinces, taille haute et jambe droite : la coupe qui structure sans serrer.',
+    descriptionRendu:
+      'un pantalon de costume en laine bleu marine à deux pinces, taille haute, jambe droite',
+    accords: ['v4', 'h1', 'm2', 's2', 'a5']
   },
-  // Kiko
   {
     id: 'p5',
-    artiste: 'Kiko',
-    titre: "À Fleur d'Origami",
-    medium: 'Peinture au couteau sur toile de lin',
-    dimensions: '120 × 120 cm',
-    prix: '4 500 €',
-    tag: 'peinture',
-    gradient: 'linear-gradient(120deg, #FF6B9D, #C44D8B, #1A0A12)',
-    image: '/artistes/kiko/KIKO-A-FLEUR-DORIGAMI-120-x-120-cm-Palette-knife-painting-on-linen-canvas.jpg',
-    dims: { h: 120, l: 120, p: null },
-    orientation: 'carre',
-    motsCles: ['couteau', 'matière', 'origami', 'fleur', 'multicolore'],
-    couleurs: ['rose', 'multicolore'],
-    descriptionCourte: "Profil à fleur d'origami, éclats multicolores au couteau."
+    nom: 'Pantalon en velours côtelé',
+    categorie: 'pantalon',
+    slots: SLOTS_PAR_CATEGORIE.pantalon,
+    matiere: 'Velours côtelé',
+    matieres: ['velours', 'coton'],
+    couleur: 'Brun tabac',
+    couleurs: ['brun'],
+    coupe: 'slim',
+    prix: 179,
+    tailles: TAILLES_PANTALON,
+    image: '/produits/pantalon-velours-cotele-brun.svg',
+    gradient: 'linear-gradient(145deg, #8A6A45, #4E3B26)',
+    occasions: ['quotidien', 'bureau'],
+    motsCles: ['hiver', 'velours', 'chaud', 'matière', 'décontracté'],
+    descriptionCourte: "Velours côtelé brun tabac, côtes larges : la chaleur de l'hiver avec du relief.",
+    descriptionRendu:
+      'un pantalon en velours côtelé brun tabac aux côtes larges et visibles, coupe ajustée',
+    accords: ['v4', 'm1', 'h5', 's2']
+  },
+
+  // ─────────────────────────────── Chemises
+  {
+    id: 'h1',
+    nom: 'Chemise en popeline',
+    categorie: 'chemise',
+    slots: SLOTS_PAR_CATEGORIE.chemise,
+    matiere: 'Popeline de coton',
+    matieres: ['coton', 'popeline'],
+    couleur: 'Blanc',
+    couleurs: ['blanc'],
+    coupe: 'slim',
+    prix: 99,
+    tailles: TAILLES_CHEMISE,
+    image: '/produits/chemise-popeline-blanche.svg',
+    gradient: 'linear-gradient(145deg, #FFFFFF, #D9D9D9)',
+    occasions: ['bureau', 'mariage-invite', 'mariage-marie', 'ceremonie', 'soiree'],
+    motsCles: ['blanc', 'classique', 'indispensable', 'col italien'],
+    descriptionCourte:
+      'La chemise blanche en popeline, col italien : celle qui manque toujours et qui va avec tout.',
+    descriptionRendu:
+      'une chemise en popeline de coton blanche à col italien, boutonnée, poignets simples',
+    accords: ['c1', 'c3', 'a1', 'v2']
   },
   {
-    id: 'p6',
-    artiste: 'Kiko',
-    titre: 'À tes côtés',
-    medium: 'Peinture au couteau sur toile de lin',
-    dimensions: '100 × 100 cm',
-    prix: '3 600 €',
-    tag: 'peinture',
-    gradient: 'linear-gradient(125deg, #FF8FB0, #C4548B)',
-    image: '/artistes/kiko/KIKO-A-TES-COTES-100-x-100-cm-Peinture-au-couteau-sur-toile-de-lin.jpg',
-    dims: { h: 100, l: 100, p: null },
-    orientation: 'carre',
-    motsCles: ['couteau', 'matière', 'couple', 'tendresse'],
-    couleurs: ['rose'],
-    descriptionCourte: 'Deux présences côte à côte, matière rose au couteau.'
+    id: 'h2',
+    nom: 'Chemise en popeline',
+    categorie: 'chemise',
+    slots: SLOTS_PAR_CATEGORIE.chemise,
+    matiere: 'Popeline de coton',
+    matieres: ['coton', 'popeline'],
+    couleur: 'Bleu ciel',
+    couleurs: ['bleu', 'ciel'],
+    coupe: 'slim',
+    prix: 99,
+    tailles: TAILLES_CHEMISE,
+    image: '/produits/chemise-popeline-bleu-ciel.svg',
+    gradient: 'linear-gradient(145deg, #C3D8EA, #8FAFC9)',
+    occasions: ['bureau', 'quotidien', 'mariage-invite'],
+    motsCles: ['bleu', 'classique', 'bureau', 'col italien'],
+    descriptionCourte:
+      'Bleu ciel en popeline : un peu moins formel que le blanc, un peu plus vivant sous un costume marine.',
+    descriptionRendu:
+      'une chemise en popeline de coton bleu ciel à col italien, boutonnée, poignets simples',
+    accords: ['c1', 'v2', 'a1', 'p2']
   },
   {
-    id: 'p7',
-    artiste: 'Kiko',
-    titre: 'Fusion',
-    medium: 'Peinture au couteau',
-    dimensions: '120 × 120 cm',
-    prix: '4 200 €',
-    tag: 'peinture',
-    gradient: 'linear-gradient(120deg, #E8608A, #A83070)',
-    image: '/artistes/kiko/KIKO-FUSION-120-x-120-cm.jpg',
-    dims: { h: 120, l: 120, p: null },
-    orientation: 'carre',
-    motsCles: ['couteau', 'matière', 'couple', 'fusion'],
-    couleurs: ['rose', 'rouge'],
-    descriptionCourte: 'Fusion de deux êtres, reliefs vibrants au couteau.'
+    id: 'h3',
+    nom: 'Chemise Oxford col boutonné',
+    categorie: 'chemise',
+    slots: SLOTS_PAR_CATEGORIE.chemise,
+    matiere: 'Coton Oxford',
+    matieres: ['coton'],
+    couleur: 'Blanc',
+    couleurs: ['blanc'],
+    coupe: 'regular',
+    prix: 109,
+    tailles: TAILLES_CHEMISE,
+    image: '/produits/chemise-oxford-blanche.svg',
+    gradient: 'linear-gradient(145deg, #F6F5F1, #CFCDC6)',
+    occasions: ['quotidien', 'bureau'],
+    motsCles: ['décontracté', 'oxford', 'col boutonné', 'américain'],
+    descriptionCourte:
+      'Coton Oxford épais et col boutonné : la chemise décontractée qui tient debout toute seule.',
+    descriptionRendu:
+      'une chemise en coton Oxford blanc au tissage texturé, col américain boutonné, coupe droite',
+    accords: ['v4', 'p2', 'm2', 's4']
   },
   {
-    id: 'p8',
-    artiste: 'Kiko',
-    titre: 'Gardien de Lumière',
-    medium: 'Peinture au couteau',
-    dimensions: '120 × 120 cm',
-    prix: '4 800 €',
-    tag: 'peinture',
-    gradient: 'linear-gradient(125deg, #FF70A0, #B03870)',
-    image: '/artistes/kiko/KIKO-GARDIEN-DE-LUMIERE-120-x-120-cm-Peinture-au-couteau.jpg',
-    dims: { h: 120, l: 120, p: null },
-    orientation: 'carre',
-    motsCles: ['couteau', 'matière', 'lumière', 'gardien'],
-    couleurs: ['rose', 'doré'],
-    descriptionCourte: 'Gardien de lumière, matière irisée sculptée au couteau.'
-  },
-  // Harding Meyer
-  {
-    id: 'p9',
-    artiste: 'Harding Meyer',
-    titre: 'Portrait nº 4 (2026)',
-    medium: 'Huile sur toile',
-    dimensions: '110 × 90 cm',
-    prix: '12 000 €',
-    tag: 'peinture',
-    gradient: 'linear-gradient(135deg, #5A3E2B, #C49A72)',
-    image: '/artistes/harding%20meyer/4-2026-110-x-90-cm-Huile-sur-toile.jpg',
-    dims: { h: 110, l: 90, p: null },
-    orientation: 'portrait',
-    motsCles: ['portrait', 'visage', 'regard', 'contemporain'],
-    couleurs: ['brun', 'chair'],
-    descriptionCourte: 'Portrait contemporain au regard suspendu, tons chauds.'
+    id: 'h4',
+    nom: 'Chemise en lin',
+    categorie: 'chemise',
+    slots: SLOTS_PAR_CATEGORIE.chemise,
+    matiere: 'Lin',
+    matieres: ['lin'],
+    couleur: 'Blanc',
+    couleurs: ['blanc'],
+    coupe: 'regular',
+    prix: 119,
+    tailles: TAILLES_CHEMISE,
+    image: '/produits/chemise-lin-blanche.svg',
+    gradient: 'linear-gradient(145deg, #FAF6EE, #D2CBBB)',
+    occasions: ['quotidien', 'mariage-invite'],
+    motsCles: ['été', 'lin', 'léger', 'extérieur', 'méditerranéen'],
+    descriptionCourte:
+      "Lin blanc au froissé assumé : la chemise d'été qui respire, col ouvert ou fermé.",
+    descriptionRendu: 'une chemise en lin blanc au froissé naturel visible, col souple, coupe droite',
+    accords: ['c3', 'c4', 'v3', 'p3']
   },
   {
-    id: 'p10',
-    artiste: 'Harding Meyer',
-    titre: 'Portrait nº 8',
-    medium: 'Huile sur toile',
-    dimensions: '160 × 200 cm',
-    prix: '18 000 €',
-    tag: 'peinture',
-    gradient: 'linear-gradient(140deg, #3A2C1E, #B08050)',
-    image: '/artistes/harding%20meyer/8-160-x-200-cm-Huile-sur-toile.jpg',
-    dims: { h: 160, l: 200, p: null },
-    orientation: 'paysage',
-    motsCles: ['portrait', 'visage', 'regard', 'grand format'],
-    couleurs: ['brun', 'chair'],
-    descriptionCourte: 'Très grand visage à l’huile, présence magnétique.'
+    id: 'h5',
+    nom: 'Chemise en lin',
+    categorie: 'chemise',
+    slots: SLOTS_PAR_CATEGORIE.chemise,
+    matiere: 'Lin',
+    matieres: ['lin'],
+    couleur: 'Bleu denim',
+    couleurs: ['bleu'],
+    coupe: 'regular',
+    prix: 119,
+    tailles: TAILLES_CHEMISE,
+    image: '/produits/chemise-lin-bleu.svg',
+    gradient: 'linear-gradient(145deg, #7C93AB, #4C6076)',
+    occasions: ['quotidien'],
+    motsCles: ['été', 'lin', 'décontracté', 'bleu'],
+    descriptionCourte:
+      'Un lin bleu denim profond : la chemise du week-end qui passe aussi sous une veste.',
+    descriptionRendu: 'une chemise en lin bleu denim au froissé naturel, col souple, coupe droite',
+    accords: ['v4', 'p5', 'p2', 's3']
   },
   {
-    id: 'p11',
-    artiste: 'Harding Meyer',
-    titre: 'Portrait nº 12',
-    medium: 'Huile sur toile',
-    dimensions: '150 × 120 cm',
-    prix: '15 500 €',
-    tag: 'peinture',
-    gradient: 'linear-gradient(135deg, #4A3422, #C09060)',
-    image: '/artistes/harding%20meyer/HARDING-MEYER-12-150-x-120-cm-Oil-on-canvas.jpg',
-    dims: { h: 150, l: 120, p: null },
-    orientation: 'portrait',
-    motsCles: ['portrait', 'visage', 'regard', 'grand format'],
-    couleurs: ['brun', 'chair'],
-    descriptionCourte: 'Portrait vertical grand format, matière picturale dense.'
+    id: 'h6',
+    nom: 'Chemise de smoking à plastron',
+    categorie: 'chemise',
+    slots: SLOTS_PAR_CATEGORIE.chemise,
+    matiere: 'Coton piqué',
+    matieres: ['coton'],
+    couleur: 'Blanc',
+    couleurs: ['blanc'],
+    coupe: 'slim',
+    prix: 149,
+    tailles: TAILLES_CHEMISE,
+    image: '/produits/chemise-smoking-plastron.svg',
+    gradient: 'linear-gradient(145deg, #FFFFFF, #CFCFCF)',
+    occasions: ['soiree', 'mariage-marie', 'ceremonie'],
+    motsCles: ['smoking', 'plastron', 'col cassé', 'gala', 'black tie'],
+    descriptionCourte:
+      'Plastron piqué et col cassé : la seule chemise qui se porte vraiment avec un smoking.',
+    descriptionRendu:
+      'une chemise de smoking blanche à plastron en coton piqué et col cassé, boutons de manchette',
+    accords: ['c7', 'a3', 'c8']
+  },
+
+  // ─────────────────────────────── Maille
+  {
+    id: 'm1',
+    nom: 'Pull col rond en mérinos',
+    categorie: 'maille',
+    slots: SLOTS_PAR_CATEGORIE.maille,
+    matiere: 'Laine mérinos',
+    matieres: ['laine', 'merinos', 'maille'],
+    couleur: 'Bleu marine',
+    couleurs: ['bleu', 'marine'],
+    coupe: 'slim',
+    prix: 139,
+    tailles: ['S', 'M', 'L', 'XL', 'XXL'],
+    image: '/produits/pull-merinos-marine.svg',
+    gradient: 'linear-gradient(145deg, #2F3D57, #191F30)',
+    occasions: ['quotidien', 'bureau'],
+    motsCles: ['hiver', 'chaud', 'maille', 'fin', 'décontracté'],
+    descriptionCourte:
+      "Mérinos fin, col rond : assez fin pour passer sous une veste, assez chaud pour s'en passer.",
+    descriptionRendu: 'un pull fin en laine mérinos bleu marine à col rond, maille serrée',
+    accords: ['v4', 'p1', 'p5', 's2']
   },
   {
-    id: 'p12',
-    artiste: 'Harding Meyer',
-    titre: 'Portrait nº 15',
-    medium: 'Huile sur toile',
-    dimensions: '160 × 200 cm',
-    prix: '20 000 €',
-    tag: 'peinture',
-    gradient: 'linear-gradient(140deg, #2E1E12, #A07040)',
-    image: '/artistes/harding%20meyer/HARDING-MEYER-15-160-x-200-cm-Oil-on-canvas.jpg',
-    dims: { h: 160, l: 200, p: null },
-    orientation: 'paysage',
-    motsCles: ['portrait', 'visage', 'regard', 'grand format'],
-    couleurs: ['brun', 'chair'],
-    descriptionCourte: 'Visage monumental à l’huile, cadrage cinématographique.'
+    id: 'm2',
+    nom: 'Gilet sans manches en maille',
+    categorie: 'maille',
+    slots: SLOTS_PAR_CATEGORIE.maille,
+    matiere: 'Laine mérinos',
+    matieres: ['laine', 'merinos', 'maille'],
+    couleur: 'Gris perle',
+    couleurs: ['gris'],
+    coupe: 'slim',
+    prix: 119,
+    tailles: ['S', 'M', 'L', 'XL', 'XXL'],
+    image: '/produits/gilet-maille-gris.svg',
+    gradient: 'linear-gradient(145deg, #B4B6BA, #7C7E84)',
+    occasions: ['bureau', 'quotidien'],
+    motsCles: ['gilet', 'maille', 'superposition', 'bureau'],
+    descriptionCourte:
+      'Le gilet sans manches gris perle : la troisième pièce qui habille une chemise seule.',
+    descriptionRendu:
+      'un gilet sans manches en maille de laine mérinos gris perle, col en V, porté sur une chemise',
+    accords: ['h1', 'h3', 'p4', 'p1']
+  },
+  {
+    id: 'm3',
+    nom: 'Polo en maille de coton',
+    categorie: 'maille',
+    slots: SLOTS_PAR_CATEGORIE.maille,
+    matiere: 'Maille de coton',
+    matieres: ['coton', 'maille'],
+    couleur: 'Écru',
+    couleurs: ['ecru', 'beige'],
+    coupe: 'slim',
+    prix: 129,
+    tailles: ['S', 'M', 'L', 'XL', 'XXL'],
+    image: '/produits/polo-maille-ecru.svg',
+    gradient: 'linear-gradient(145deg, #EDE4D2, #BCB19A)',
+    occasions: ['quotidien', 'mariage-invite'],
+    motsCles: ['été', 'polo', 'maille', 'décontracté', 'clair'],
+    descriptionCourte:
+      "Polo en maille écru, col souple : la pièce qui rend un costume d'été immédiatement décontracté.",
+    descriptionRendu: 'un polo en maille de coton écru à col souple ouvert, manches courtes',
+    accords: ['c3', 'v1', 'p3', 's3']
+  },
+
+  // ─────────────────────────────── Chaussures
+  {
+    id: 's1',
+    nom: 'Derby en cuir',
+    categorie: 'chaussures',
+    slots: SLOTS_PAR_CATEGORIE.chaussures,
+    matiere: 'Cuir de veau',
+    matieres: ['cuir'],
+    couleur: 'Noir',
+    couleurs: ['noir'],
+    coupe: null,
+    prix: 289,
+    tailles: TAILLES_CHAUSSURE,
+    image: '/produits/derby-cuir-noir.svg',
+    gradient: 'linear-gradient(145deg, #2A2A2C, #0E0E10)',
+    occasions: ['bureau', 'ceremonie', 'soiree', 'mariage-marie'],
+    motsCles: ['habillé', 'noir', 'classique', 'cuir'],
+    descriptionCourte:
+      'Derby noir en cuir de veau, cousu trépointe : la chaussure qui ne se fait jamais remarquer, dans le bon sens.',
+    descriptionRendu: 'une paire de derbys en cuir de veau noir lisse, à lacets, semelle en cuir',
+    accords: ['c1', 'c5', 'c7', 'a6']
+  },
+  {
+    id: 's2',
+    nom: 'Oxford en cuir',
+    categorie: 'chaussures',
+    slots: SLOTS_PAR_CATEGORIE.chaussures,
+    matiere: 'Cuir de veau',
+    matieres: ['cuir'],
+    couleur: 'Brun acajou',
+    couleurs: ['brun'],
+    coupe: null,
+    prix: 309,
+    tailles: TAILLES_CHAUSSURE,
+    image: '/produits/oxford-cuir-brun.svg',
+    gradient: 'linear-gradient(145deg, #7A4B32, #40261A)',
+    occasions: ['bureau', 'mariage-invite', 'ceremonie'],
+    motsCles: ['habillé', 'brun', 'patine', 'cuir'],
+    descriptionCourte:
+      'Oxford acajou à la patine profonde : plus chaleureux que le noir, aussi habillé.',
+    descriptionRendu:
+      'une paire de richelieus Oxford en cuir brun acajou patiné, à lacets, bout légèrement fleuri',
+    accords: ['c1', 'c6', 'p1', 'a5']
+  },
+  {
+    id: 's3',
+    nom: 'Mocassin en daim',
+    categorie: 'chaussures',
+    slots: SLOTS_PAR_CATEGORIE.chaussures,
+    matiere: 'Daim',
+    matieres: ['daim', 'cuir'],
+    couleur: 'Taupe',
+    couleurs: ['beige', 'brun'],
+    coupe: null,
+    prix: 259,
+    tailles: TAILLES_CHAUSSURE,
+    image: '/produits/mocassin-daim-taupe.svg',
+    gradient: 'linear-gradient(145deg, #A3907A, #6B5C48)',
+    occasions: ['quotidien', 'mariage-invite'],
+    motsCles: ['été', 'daim', 'décontracté', 'sans lacets', 'clair'],
+    descriptionCourte: "Mocassin en daim taupe, sans lacets : la chaussure d'été des costumes en lin.",
+    descriptionRendu: 'une paire de mocassins en daim taupe mat, sans lacets, semelle fine',
+    accords: ['c3', 'c4', 'p3', 'v1']
+  },
+  {
+    id: 's4',
+    nom: 'Sneaker en cuir',
+    categorie: 'chaussures',
+    slots: SLOTS_PAR_CATEGORIE.chaussures,
+    matiere: 'Cuir de veau',
+    matieres: ['cuir'],
+    couleur: 'Blanc',
+    couleurs: ['blanc'],
+    coupe: null,
+    prix: 199,
+    tailles: TAILLES_CHAUSSURE,
+    image: '/produits/sneaker-cuir-blanc.svg',
+    gradient: 'linear-gradient(145deg, #FFFFFF, #C9C9C9)',
+    occasions: ['quotidien'],
+    motsCles: ['décontracté', 'blanc', 'sneaker', 'moderne'],
+    descriptionCourte:
+      'Sneaker blanche en cuir lisse, silhouette minimale : le décontracté qui reste net.',
+    descriptionRendu: 'une paire de sneakers minimalistes en cuir blanc lisse, semelle blanche fine',
+    accords: ['p2', 'h3', 'v1', 'm3']
+  },
+
+  // ─────────────────────────────── Accessoires
+  {
+    id: 'a1',
+    nom: 'Cravate en grenadine de soie',
+    categorie: 'accessoire',
+    slots: ['cou'],
+    matiere: 'Grenadine de soie',
+    matieres: ['soie'],
+    couleur: 'Bleu marine',
+    couleurs: ['bleu', 'marine'],
+    coupe: null,
+    prix: 79,
+    tailles: TAILLE_UNIQUE,
+    image: '/produits/cravate-grenadine-marine.svg',
+    gradient: 'linear-gradient(145deg, #2C3A55, #141B29)',
+    occasions: ['bureau', 'mariage-invite', 'ceremonie'],
+    motsCles: ['cravate', 'soie', 'texture', 'classique'],
+    descriptionCourte:
+      'Grenadine tissée main : la seule cravate unie qui a du relief. Elle va avec tous les costumes.',
+    descriptionRendu: 'une cravate en grenadine de soie bleu marine au tissage texturé',
+    accords: ['c1', 'h1', 'v2']
+  },
+  {
+    id: 'a2',
+    nom: 'Cravate en laine',
+    categorie: 'accessoire',
+    slots: ['cou'],
+    matiere: 'Laine',
+    matieres: ['laine'],
+    couleur: 'Bordeaux',
+    couleurs: ['bordeaux', 'brun'],
+    coupe: null,
+    prix: 69,
+    tailles: TAILLE_UNIQUE,
+    image: '/produits/cravate-laine-bordeaux.svg',
+    gradient: 'linear-gradient(145deg, #6E2732, #3A1219)',
+    occasions: ['bureau', 'quotidien'],
+    motsCles: ['cravate', 'laine', 'hiver', 'mat', 'bordeaux'],
+    descriptionCourte:
+      "Laine bordeaux au tombé mat : la cravate d'hiver, plus douce qu'une soie sur une flanelle.",
+    descriptionRendu: 'une cravate en laine bordeaux au tombé mat et bout droit',
+    accords: ['c5', 'c6', 'v4']
+  },
+  {
+    id: 'a3',
+    nom: 'Nœud papillon en soie',
+    categorie: 'accessoire',
+    slots: ['cou'],
+    matiere: 'Soie',
+    matieres: ['soie'],
+    couleur: 'Noir',
+    couleurs: ['noir'],
+    coupe: null,
+    prix: 59,
+    tailles: TAILLE_UNIQUE,
+    image: '/produits/noeud-papillon-soie-noir.svg',
+    gradient: 'linear-gradient(145deg, #26262A, #0C0C0E)',
+    occasions: ['soiree', 'mariage-marie', 'ceremonie'],
+    motsCles: ['nœud papillon', 'smoking', 'gala', 'black tie', 'soie'],
+    descriptionCourte:
+      'Nœud papillon en soie noire, à nouer soi-même : indispensable avec un smoking.',
+    descriptionRendu: 'un nœud papillon en soie noire satinée, forme papillon classique',
+    accords: ['c7', 'h6', 'c8']
+  },
+  {
+    id: 'a4',
+    nom: 'Pochette en lin',
+    categorie: 'accessoire',
+    slots: ['poche'],
+    matiere: 'Lin',
+    matieres: ['lin'],
+    couleur: 'Blanc',
+    couleurs: ['blanc'],
+    coupe: null,
+    prix: 35,
+    tailles: TAILLE_UNIQUE,
+    image: '/produits/pochette-lin-blanche.svg',
+    gradient: 'linear-gradient(145deg, #FDFBF6, #D6D0C2)',
+    occasions: ['mariage-invite', 'mariage-marie', 'ceremonie', 'soiree', 'bureau'],
+    motsCles: ['pochette', 'lin', 'blanc', 'détail'],
+    descriptionCourte:
+      'Pochette en lin blanc à bords roulottés : le détail qui finit une veste, sans effort.',
+    descriptionRendu:
+      'une pochette de costume en lin blanc, pliée droite et glissée dans la poche poitrine de la veste',
+    accords: ['c1', 'c3', 'c7', 'v2']
+  },
+  {
+    id: 'a5',
+    nom: 'Ceinture en cuir',
+    categorie: 'accessoire',
+    slots: ['taille'],
+    matiere: 'Cuir de veau',
+    matieres: ['cuir'],
+    couleur: 'Brun',
+    couleurs: ['brun'],
+    coupe: null,
+    prix: 89,
+    tailles: ['85', '90', '95', '100', '105'],
+    image: '/produits/ceinture-cuir-brun.svg',
+    gradient: 'linear-gradient(145deg, #7A5334, #3F2B1B)',
+    occasions: ['bureau', 'quotidien', 'mariage-invite'],
+    motsCles: ['ceinture', 'cuir', 'brun'],
+    descriptionCourte:
+      'Ceinture en cuir brun à boucle argent : à accorder aux chaussures, jamais au hasard.',
+    descriptionRendu: 'une ceinture en cuir brun lisse à boucle argentée rectangulaire',
+    accords: ['s2', 'p1', 'p2', 'c6']
+  },
+  {
+    id: 'a6',
+    nom: 'Ceinture en cuir',
+    categorie: 'accessoire',
+    slots: ['taille'],
+    matiere: 'Cuir de veau',
+    matieres: ['cuir'],
+    couleur: 'Noir',
+    couleurs: ['noir'],
+    coupe: null,
+    prix: 89,
+    tailles: ['85', '90', '95', '100', '105'],
+    image: '/produits/ceinture-cuir-noir.svg',
+    gradient: 'linear-gradient(145deg, #2B2B2D, #101012)',
+    occasions: ['bureau', 'ceremonie', 'soiree'],
+    motsCles: ['ceinture', 'cuir', 'noir'],
+    descriptionCourte:
+      'Ceinture en cuir noir à boucle argent : le pendant du derby noir, pour les tenues formelles.',
+    descriptionRendu: 'une ceinture en cuir noir lisse à boucle argentée rectangulaire',
+    accords: ['s1', 'c1', 'c5', 'p1']
   }
 ]
 
-/** Noms exacts des artistes du catalogue (liste blanche pour l'analyse IA). */
-export const ARTISTES: string[] = [...new Set(CATALOGUE.map((o) => o.artiste))]
+// ─────────────────────────────── Dérivés (matching, prompts, UI)
 
-/**
- * Présentation éditoriale (1–2 phrases) de chaque artiste, affichée à l'étape
- * intermédiaire « Les artistes retenus » avant la sélection d'œuvres. Écrites à
- * la main : mentionnent l'œuvre / le motif signature pour ancrer l'introduction.
- */
-export const BIO_ARTISTES: Record<string, string> = {
-  'Bruno Catalano':
-    'Sculpteur mondialement reconnu pour ses « Voyageurs » en bronze au corps fragmenté, dont la célèbre composition Le Voyageur. Ses personnages, valise à la main, semblent suspendus entre départ et souvenir.',
-  'Andrea Roggi':
-    'Maître italien de la sculpture en bronze, célébré pour ses arbres de vie et ses couples enlacés inscrits dans le cercle. Son œuvre chante le lien, la nature et la transmission.',
-  'Paul Beckrich':
-    'Sculpteur du bronze doré à l’or fin et du raku, il façonne des bustes précieux — dames de Chine, samouraïs — où la matière noble rencontre la sérénité du visage.',
-  'Lorenzo Quinn':
-    'Sculpteur des mains et des émotions, mondialement connu pour ses œuvres monumentales sur l’amour et le lien humain. Ses bronzes traduisent en gestes ce qui échappe aux mots.',
-  'Al Freno':
-    'Peintre figuratif à l’univers pop et coloré, il compose de grands formats à l’huile aux bleus profonds où le regard et l’énergie tiennent le premier rôle.',
-  Kiko: 'Peintre au couteau, il sculpte la lumière et la couleur en épaisseur sur la toile de lin. Ses profils et ses couples vibrent d’une matière multicolore et sensible.',
-  'Harding Meyer':
-    'Portraitiste contemporain de renom, il peint à l’huile des visages monumentaux au regard suspendu, d’une présence magnétique et cinématographique.'
-}
+/** Toutes les matières du catalogue — liste blanche des sorties du modèle. */
+export const VOCABULAIRE_MATIERES: string[] = [
+  ...new Set(CATALOGUE.flatMap((a) => a.matieres))
+].sort()
 
-/**
- * Mots-clés par artiste (union des mots-clés de ses œuvres) — injectés dans le
- * prompt d'analyse pour ancrer la reconnaissance « description → artiste »
- * (ex. « un homme avec une valise qui marche » → Bruno Catalano).
- */
-export const MOTS_CLES_ARTISTES: Record<string, string[]> = CATALOGUE.reduce(
-  (acc, o) => {
-    acc[o.artiste] = [...new Set([...(acc[o.artiste] ?? []), ...o.motsCles])]
-    return acc
-  },
-  {} as Record<string, string[]>
-)
+/** Toutes les familles de couleur du catalogue — liste blanche. */
+export const VOCABULAIRE_COULEURS: string[] = [
+  ...new Set(CATALOGUE.flatMap((a) => a.couleurs))
+].sort()
 
-/** Vocabulaire contrôlé complet (liste blanche des `motsCles` de l'analyse IA). */
+/** Tous les mots-clés du catalogue — liste blanche. */
 export const VOCABULAIRE_MOTS_CLES: string[] = [
-  ...new Set(CATALOGUE.flatMap((o) => o.motsCles))
+  ...new Set(CATALOGUE.flatMap((a) => a.motsCles))
+].sort()
+
+/** Ordre d'affichage des familles dans la sélection. */
+export const ORDRE_CATEGORIES: Categorie[] = [
+  'costume',
+  'veste',
+  'pantalon',
+  'chemise',
+  'maille',
+  'chaussures',
+  'accessoire'
 ]
 
-/**
- * Regroupe les œuvres d'un type par artiste, dans l'ordre du catalogue.
- * Alimente les carrousels de l'étape « Ma sélection » (repli sans matching).
- */
-export function grouperParArtiste(tag: Tag): { artiste: string; oeuvres: Oeuvre[] }[] {
-  const groupes: { artiste: string; oeuvres: Oeuvre[] }[] = []
-  for (const o of CATALOGUE) {
-    if (o.tag !== tag) continue
-    let groupe = groupes.find((g) => g.artiste === o.artiste)
-    if (!groupe) {
-      groupe = { artiste: o.artiste, oeuvres: [] }
-      groupes.push(groupe)
-    }
-    groupe.oeuvres.push(o)
+const INDEX = new Map(CATALOGUE.map((a) => [a.id, a]))
+
+/** Article par identifiant. Lève si l'id n'existe pas (erreur de développement). */
+export function parId(id: string): Article {
+  const article = INDEX.get(id)
+  if (!article) throw new Error(`Article inconnu : ${id}`)
+  return article
+}
+
+/** Article par identifiant, ou undefined (listes d'accords tolérantes). */
+export function parIdSafe(id: string): Article | undefined {
+  return INDEX.get(id)
+}
+
+/** Regroupe une liste d'articles par famille, dans l'ordre d'affichage. */
+export function grouperParCategorie(
+  articles: Article[]
+): { categorie: Categorie; articles: Article[] }[] {
+  const groupes: { categorie: Categorie; articles: Article[] }[] = []
+  for (const categorie of ORDRE_CATEGORIES) {
+    const membres = articles.filter((a) => a.categorie === categorie)
+    if (membres.length > 0) groupes.push({ categorie, articles: membres })
   }
   return groupes
-}
-
-/** Accès direct à une œuvre par id — utilisé par les sections de la landing. */
-export function parId(id: string): Oeuvre {
-  const o = CATALOGUE.find((x) => x.id === id)
-  if (!o) throw new Error(`Œuvre inconnue : ${id}`)
-  return o
 }

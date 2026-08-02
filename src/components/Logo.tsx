@@ -1,28 +1,20 @@
 interface LogoProps {
-  /** Variante de taille : compacte (nav) ou grande (footer). */
-  large?: boolean
   className?: string
+  large?: boolean
 }
 
 /**
- * Wordmark « GALERIES BARTOUX » rendu en CSS (toujours fiable, identique au site).
- * Deux lignes serif : GALERIES (fin, très espacé) au-dessus de BARTOUX (gras).
+ * Wordmark André Laurent — texte pur (aucun fichier image), à la façon des
+ * maisons de prêt-à-porter : serif à fort contraste, capitales très espacées.
  */
-export default function Logo({ large = false, className = '' }: LogoProps) {
+export default function Logo({ className = '', large = false }: LogoProps) {
   return (
-    <span className={`inline-flex select-none flex-col items-center leading-none ${className}`}>
-      <span
-        className={`font-serif ${large ? 'text-[12px]' : 'text-[9px]'}`}
-        style={{ letterSpacing: '0.5em', paddingLeft: '0.5em' }}
-      >
-        GALERIES
-      </span>
-      <span
-        className={`font-serif font-semibold ${large ? 'mt-1 text-[26px]' : 'text-[19px]'}`}
-        style={{ letterSpacing: '0.28em', paddingLeft: '0.28em' }}
-      >
-        BARTOUX
-      </span>
+    <span
+      className={`select-none whitespace-nowrap font-serif font-medium leading-none ${
+        large ? 'text-[26px] tracking-[0.18em]' : 'text-[19px] tracking-[0.2em]'
+      } ${className}`}
+    >
+      ANDRÉ LAURENT
     </span>
   )
 }

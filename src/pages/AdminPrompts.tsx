@@ -3,7 +3,7 @@ import type { AdminPromptsGetResponse, AdminPromptsPostResponse, PromptConfig } 
 import {
   ANALYZE_INSTRUCTIONS_MAX,
   RENDER_INSTRUCTIONS_MAX,
-  JUSTIFY_INSTRUCTIONS_MAX
+  BRIEF_INSTRUCTIONS_MAX
 } from '../types/admin'
 import Logo from '../components/Logo'
 import { PrimaryButton, SecondaryButton, StepEyebrow } from '../components/widget/ui'
@@ -14,7 +14,7 @@ interface Message {
 }
 
 const CHAMP =
-  'w-full rounded-lg border border-white/10 bg-[#1A1A1A] p-4 font-mono text-[12.5px] leading-relaxed text-white outline-none transition-colors focus:border-or-bartoux/60'
+  'w-full border border-white/10 bg-[#1A1A1A] p-4 font-mono text-[12.5px] leading-relaxed text-white outline-none transition-colors focus:border-sable/60'
 
 /**
  * Outil interne : édition des prompts du pipeline IA sans redéploiement.
@@ -27,7 +27,7 @@ export default function AdminPrompts() {
   const [message, setMessage] = useState<Message | null>(null)
   const [analyze, setAnalyze] = useState('')
   const [render, setRender] = useState('')
-  const [justify, setJustify] = useState('')
+  const [brief, setBrief] = useState('')
   const [defauts, setDefauts] = useState<PromptConfig | null>(null)
 
   const charger = async () => {
@@ -48,7 +48,7 @@ export default function AdminPrompts() {
       }
       setAnalyze(json.config.analyzeInstructions)
       setRender(json.config.renderInstructions)
-      setJustify(json.config.justifyInstructions)
+      setBrief(json.config.briefInstructions)
       setDefauts(json.defaults)
       setDeverrouille(true)
     } catch {
@@ -68,7 +68,7 @@ export default function AdminPrompts() {
         body: JSON.stringify({
           analyzeInstructions: analyze,
           renderInstructions: render,
-          justifyInstructions: justify
+          briefInstructions: brief
         })
       })
       const json = (await res.json()) as AdminPromptsPostResponse
@@ -88,7 +88,7 @@ export default function AdminPrompts() {
     if (!defauts) return
     setAnalyze(defauts.analyzeInstructions)
     setRender(defauts.renderInstructions)
-    setJustify(defauts.justifyInstructions)
+    setBrief(defauts.briefInstructions)
     setMessage({
       type: 'info',
       texte: 'Valeurs par défaut restaurées — cliquez Enregistrer pour les appliquer.'
@@ -96,11 +96,11 @@ export default function AdminPrompts() {
   }
 
   return (
-    <div className="min-h-screen bg-noir-bartoux px-5 py-10 text-white">
+    <div className="min-h-screen bg-noir-encre px-5 py-10 text-white">
       <div className="mx-auto max-w-[760px]">
         <div className="mb-10 flex flex-col items-center">
           <Logo large className="text-white" />
-          <p className="mt-2 font-sans text-[11px] uppercase tracking-[0.22em] text-or-bartoux">
+          <p className="mt-2 font-sans text-[11px] uppercase tracking-[0.22em] text-sable">
             Administration des prompts IA
           </p>
         </div>
@@ -128,7 +128,7 @@ export default function AdminPrompts() {
         ) : (
           <div className="space-y-8">
             <section>
-              <StepEyebrow>1 · Compréhension de la demande client (analyse)</StepEyebrow>
+              <StepEyebrow>1 · Lecture de la demande client (analyse)</StepEyebrow>
               <textarea
                 className={CHAMP}
                 rows={12}
@@ -137,15 +137,15 @@ export default function AdminPrompts() {
                 onChange={(e) => setAnalyze(e.target.value)}
               />
               <p className="mt-2 font-sans text-[11px] font-light text-gris-texte">
-                Section « TÂCHES » du prompt d'analyse (artistes, zones de placement, échelle).
-                Placeholders : {'{{TYPE}}'}, {'{{RECHERCHE}}'}, {'{{DESCRIPTION}}'}, {'{{ARTISTES}}'},{' '}
-                {'{{VOCABULAIRE}}'}, {'{{AVEC_PHOTO}}'}. Le format JSON de sortie est verrouillé côté
-                code et ne peut pas être cassé d'ici.
+                Section « TÂCHES » du prompt d'analyse : familles, occasion, matière, couleur,
+                budget, coupe. Placeholders : {'{{DEMANDE}}'}, {'{{CATEGORIES}}'}, {'{{OCCASIONS}}'},{' '}
+                {'{{MATIERES}}'}, {'{{COULEURS}}'}, {'{{MOTS_CLES}}'}. Le schéma JSON de sortie et le
+                filtrage sur le vocabulaire du catalogue sont verrouillés côté code.
               </p>
             </section>
 
             <section>
-              <StepEyebrow>2 · Intégration de l'œuvre dans la photo (rendu)</StepEyebrow>
+              <StepEyebrow>2 · Essayage virtuel sur la photo du client (rendu)</StepEyebrow>
               <textarea
                 className={CHAMP}
                 rows={10}
@@ -154,33 +154,34 @@ export default function AdminPrompts() {
                 onChange={(e) => setRender(e.target.value)}
               />
               <p className="mt-2 font-sans text-[11px] font-light text-gris-texte">
-                Consignes de placement et de réalisme (échelle, perspective, lumière, ombres, fidélité).
-                Placeholders : {'{{KIND}}'}, {'{{NOTES}}'}. L'emplacement, la largeur du mur et les
-                dimensions réelles de l'œuvre sont ajoutés automatiquement autour de ce texte. Le rendu
-                utilise Nano Banana Pro (Gemini 3 Pro Image).
+                Consignes de réalisme textile (tombé, matière, plis, lumière, ombres,
+                superposition). Placeholders : {'{{NOTES}}'}, {'{{PIECES}}'}. La correspondance pièce ↔
+                partie du corps remplacée, et l'interdiction de modifier le visage, la morphologie et le
+                décor, sont ajoutées automatiquement autour de ce texte et ne peuvent pas être cassées
+                d'ici. Le rendu utilise Nano Banana Pro (Gemini 3 Pro Image).
               </p>
             </section>
 
             <section>
-              <StepEyebrow>3 · Présentation des artistes retenus (justification)</StepEyebrow>
+              <StepEyebrow>3 · Reformulation du besoin (brief)</StepEyebrow>
               <textarea
                 className={CHAMP}
                 rows={9}
-                maxLength={JUSTIFY_INSTRUCTIONS_MAX}
-                value={justify}
-                onChange={(e) => setJustify(e.target.value)}
+                maxLength={BRIEF_INSTRUCTIONS_MAX}
+                value={brief}
+                onChange={(e) => setBrief(e.target.value)}
               />
               <p className="mt-2 font-sans text-[11px] font-light text-gris-texte">
-                Reformulation de la demande + une justification par artiste, à l'étape intermédiaire
-                avant la sélection. Placeholders : {'{{TYPE}}'}, {'{{RECHERCHE}}'}, {'{{DESCRIPTION}}'},{' '}
-                {'{{ARTISTES}}'}. Le format JSON de sortie est verrouillé côté code.
+                Reformulation du besoin + une phrase de conseil, à l'étape de validation avant la
+                sélection. Placeholders : {'{{DEMANDE}}'}, {'{{CRITERES}}'}, {'{{CATEGORIES}}'}. Le format
+                JSON de sortie est verrouillé côté code.
               </p>
             </section>
 
             {message && (
               <p
                 className={`font-sans text-[12px] ${
-                  message.type === 'info' ? 'text-or-bartoux' : 'text-red-300'
+                  message.type === 'info' ? 'text-sable' : 'text-red-300'
                 }`}
               >
                 {message.texte}

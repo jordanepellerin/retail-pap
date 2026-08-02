@@ -1,16 +1,18 @@
 import type { WidgetState } from '../../../types'
 import type { WidgetDispatch } from '../state'
 import { Prompt, Subtext, SecondaryButton } from '../ui'
+import { formatPrix } from '../../../data/catalogue'
+import { totalTenue } from '../../../lib/tenue'
 
 interface StepDoneProps {
   state: WidgetState
   dispatch: WidgetDispatch
 }
 
-function RecapLine({ label, value }: { label: string; value: string }) {
+function LigneRecap({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-1.5">
-      <span className="shrink-0 font-sans text-[11px] uppercase tracking-[0.12em] text-gris-texte">
+      <span className="shrink-0 font-sans text-[11px] uppercase tracking-[0.14em] text-gris-texte">
         {label}
       </span>
       <span className="text-right font-sans text-[12px] text-white">{value}</span>
@@ -19,14 +21,12 @@ function RecapLine({ label, value }: { label: string; value: string }) {
 }
 
 export default function StepDone({ state, dispatch }: StepDoneProps) {
-  const oeuvre = state.selected
-  const oeuvres = state.selection.length ? state.selection : oeuvre ? [oeuvre] : []
+  const tenue = state.tenue
 
   return (
     <div className="flex min-h-full flex-col p-5">
-      {/* Checkmark */}
       <div className="flex justify-center pt-2">
-        <div className="anim-pop-in flex h-16 w-16 items-center justify-center rounded-full bg-or-bartoux">
+        <div className="anim-pop-in flex h-16 w-16 items-center justify-center rounded-full bg-sable">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth={2.5} className="h-8 w-8">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
@@ -34,49 +34,38 @@ export default function StepDone({ state, dispatch }: StepDoneProps) {
       </div>
 
       <div className="mt-6 text-center">
-        <Prompt>Merci.</Prompt>
+        <Prompt>C’est envoyé.</Prompt>
         <Subtext>
-          Votre demande est transmise au conseiller avec le rendu joint. Il vous recontacte sous
-          24 heures.
+          Votre tenue et votre essayage partent à l’instant. Livraison et retours offerts — vous
+          avez trente jours pour changer d’avis.
         </Subtext>
       </div>
 
-      {/* Récapitulatif */}
-      <div className="mt-5 rounded-lg bg-[#1A1A1A] p-4">
-        <p className="mb-2 font-sans text-[10px] uppercase tracking-[0.2em] text-or-bartoux">
-          {oeuvres.length > 1 ? 'Votre sélection transmise' : 'Transmis au conseiller'}
+      <div className="mt-5 bg-[#161616] p-4">
+        <p className="mb-2 font-sans text-[10px] uppercase tracking-[0.2em] text-sable">
+          Votre tenue
         </p>
         <div className="divide-y divide-white/5">
-          {oeuvres.map((o) => (
-            <div key={o.id} className="flex items-baseline justify-between gap-3 py-1.5">
-              <span className="min-w-0 truncate font-serif text-[14px] text-white">
-                {o.titre}
-                {oeuvre?.id === o.id && oeuvres.length > 1 && (
-                  <span className="ml-2 font-sans text-[9px] uppercase tracking-[0.12em] text-or-bartoux">
-                    Rendu joint
-                  </span>
-                )}
-              </span>
-              <span className="shrink-0 font-sans text-[11px] uppercase tracking-[0.12em] text-gris-texte">
-                {o.artiste}
+          {tenue.map((a) => (
+            <div key={a.id} className="flex items-baseline justify-between gap-3 py-1.5">
+              <span className="min-w-0 truncate font-serif text-[14px] text-white">{a.nom}</span>
+              <span className="shrink-0 font-sans text-[11px] tracking-[0.06em] text-gris-texte">
+                {formatPrix(a.prix)}
               </span>
             </div>
           ))}
-          {oeuvres.length <= 1 && <RecapLine label="Rendu visuel" value="Joint à la demande" />}
-          <RecapLine label="Contact" value={state.email || '—'} />
-          {state.recherche.trim() && (
-            <RecapLine label="Votre recherche" value={state.recherche.trim()} />
+          <LigneRecap label="Total" value={formatPrix(totalTenue(tenue))} />
+          <LigneRecap label="Contact" value={state.email || '—'} />
+          {state.demande.trim() && (
+            <LigneRecap label="Votre demande" value={state.demande.trim()} />
           )}
-          {state.description.trim() && (
-            <RecapLine label="Note sur l'espace" value={state.description.trim()} />
-          )}
-          {state.message.trim() && <RecapLine label="Message" value={state.message.trim()} />}
+          {state.message.trim() && <LigneRecap label="Message" value={state.message.trim()} />}
         </div>
       </div>
 
       <div className="mt-auto pt-6">
         <SecondaryButton onClick={() => dispatch({ type: 'RESET' })}>
-          Nouvelle recherche
+          Composer une autre tenue
         </SecondaryButton>
       </div>
     </div>

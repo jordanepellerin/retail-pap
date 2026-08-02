@@ -1,141 +1,114 @@
 import { useState } from 'react'
 import Logo from './Logo'
-import {
-  WhatsAppIcon,
-  InstagramIcon,
-  YouTubeIcon,
-  SearchIcon,
-  MenuIcon,
-  CloseIcon
-} from './icons'
+import { BagIcon, CloseIcon, FlagFrIcon, MenuIcon, SearchIcon } from './icons'
 
-const WHATSAPP_URL = 'https://wa.me/+330670260731'
-
-const LINKS: { label: string; href: string }[] = [
-  { label: 'Artistes', href: '#' },
-  { label: 'Galeries', href: '#' },
-  { label: 'Expositions', href: '#expositions' },
-  { label: 'Actualités', href: '#actualites' },
-  { label: 'Le Groupe', href: '#histoire' },
-  { label: 'Contact', href: '#contact' }
+const RUBRIQUES = [
+  'Nouveautés',
+  'Costumes',
+  'Vestes & blazers',
+  'Chemises',
+  'Pantalons',
+  'Maille',
+  'Chaussures',
+  'Accessoires'
 ]
 
-function Social({ size = 'h-[17px] w-[17px]' }: { size?: string }) {
-  return (
-    <div className="flex items-center gap-4">
-      <a
-        href={WHATSAPP_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="WhatsApp"
-        className="text-noir-bartoux/55 transition-colors hover:text-or-bartoux"
-      >
-        <WhatsAppIcon className={size} />
-      </a>
-      <a
-        href="https://www.instagram.com/galeriesbartoux/"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Instagram"
-        className="text-noir-bartoux/55 transition-colors hover:text-or-bartoux"
-      >
-        <InstagramIcon className={size} />
-      </a>
-      <a
-        href="https://www.youtube.com/@galeriesbartoux"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="YouTube"
-        className="text-noir-bartoux/55 transition-colors hover:text-or-bartoux"
-      >
-        <YouTubeIcon className={size} />
-      </a>
-    </div>
-  )
-}
-
-function LangSwitch() {
-  return (
-    <div className="font-sans text-[11px] tracking-[0.15em] text-noir-bartoux/55">
-      <span className="text-or-bartoux">FR</span>
-      <span className="mx-1.5 text-noir-bartoux/25">/</span>
-      <span className="cursor-pointer transition-colors hover:text-noir-bartoux">EN</span>
-    </div>
-  )
-}
-
+/**
+ * Barre de navigation de la boutique : icônes à gauche, wordmark centré,
+ * langue et panier à droite, filet de 1 px en bas. Le menu détaillé s'ouvre en
+ * tiroir — la page catégorie doit rester silencieuse autour du produit.
+ */
 export default function Nav() {
-  const [open, setOpen] = useState(false)
+  const [menuOuvert, setMenuOuvert] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 border-b border-gris-bordure bg-white">
-      <div className="mx-auto max-w-content px-5 sm:px-8">
-        {/* Rangée logo — centré */}
-        <div className="relative flex items-center justify-center py-5">
-          {/* Utilitaires — desktop, à droite */}
-          <div className="absolute right-0 top-1/2 hidden -translate-y-1/2 items-center gap-4 lg:flex">
-            <button
-              type="button"
-              aria-label="Rechercher"
-              className="text-noir-bartoux/55 transition-colors hover:text-or-bartoux"
-            >
-              <SearchIcon className="h-[17px] w-[17px]" />
-            </button>
-            <span className="h-4 w-px bg-gris-bordure" />
-            <Social />
-            <span className="h-4 w-px bg-gris-bordure" />
-            <LangSwitch />
-          </div>
-
-          {/* Hamburger — mobile, à droite */}
+    <header className="sticky top-0 z-30 border-b border-gris-bordure bg-blanc-pur">
+      <div className="relative flex h-[72px] items-center justify-between px-4 sm:px-8">
+        <div className="flex items-center gap-4">
           <button
             type="button"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
-            aria-expanded={open}
-            className="absolute right-0 top-1/2 -translate-y-1/2 text-noir-bartoux lg:hidden"
+            onClick={() => setMenuOuvert(true)}
+            aria-label="Ouvrir le menu"
+            className="text-noir-encre transition-opacity hover:opacity-60"
           >
-            {open ? <CloseIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
+            <MenuIcon className="h-6 w-6" />
           </button>
-
-          <a href="#top" aria-label="Galeries Bartoux — accueil">
-            <Logo large className="text-noir-bartoux" />
-          </a>
+          <button
+            type="button"
+            aria-label="Rechercher"
+            className="text-noir-encre transition-opacity hover:opacity-60"
+          >
+            <SearchIcon className="h-[22px] w-[22px]" />
+          </button>
         </div>
 
-        {/* Rangée menu — centrée, desktop */}
-        <nav
-          className="hidden items-center justify-center gap-8 border-t border-gris-bordure/70 py-3.5 lg:flex"
-          aria-label="Navigation principale"
+        <a
+          href="/"
+          className="absolute left-1/2 -translate-x-1/2 text-noir-encre"
+          aria-label="André Laurent — accueil"
         >
-          {LINKS.map((l) => (
-            <a key={l.label} href={l.href} className="nav-link">
-              {l.label}
-            </a>
-          ))}
-        </nav>
+          <Logo large className="hidden sm:inline" />
+          <Logo className="sm:hidden" />
+        </a>
+
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            aria-label="Changer de langue — français"
+            className="flex items-center gap-1 transition-opacity hover:opacity-60"
+          >
+            <FlagFrIcon className="h-4 w-6 border border-gris-bordure" />
+            <span className="text-[10px] text-noir-encre" aria-hidden="true">
+              ▾
+            </span>
+          </button>
+          <button
+            type="button"
+            aria-label="Panier"
+            className="text-noir-encre transition-opacity hover:opacity-60"
+          >
+            <BagIcon className="h-6 w-6" />
+          </button>
+        </div>
       </div>
 
-      {/* Drawer mobile */}
-      {open && (
-        <div className="border-t border-gris-bordure bg-white px-5 pb-6 pt-2 lg:hidden">
-          <nav className="flex flex-col" aria-label="Navigation mobile">
-            {LINKS.map((l) => (
-              <a
-                key={l.label}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="nav-link border-b border-gris-bordure/60 py-4 text-[13px]"
-              >
-                {l.label}
-              </a>
-            ))}
+      {/* Tiroir de navigation */}
+      {menuOuvert && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40"
+            onClick={() => setMenuOuvert(false)}
+            aria-hidden="true"
+          />
+          <nav
+            aria-label="Navigation principale"
+            className="fixed inset-y-0 left-0 z-50 flex w-[min(340px,85vw)] flex-col bg-blanc-pur px-7 py-6 shadow-[0_0_60px_rgba(0,0,0,0.2)]"
+          >
+            <button
+              type="button"
+              onClick={() => setMenuOuvert(false)}
+              aria-label="Fermer le menu"
+              className="self-end text-noir-encre transition-opacity hover:opacity-60"
+            >
+              <CloseIcon className="h-6 w-6" />
+            </button>
+            <ul className="mt-8 space-y-1">
+              {RUBRIQUES.map((r) => (
+                <li key={r}>
+                  <a
+                    href="/"
+                    className="block border-b border-gris-bordure py-3.5 font-serif text-[20px] text-noir-encre transition-colors hover:text-gris-texte"
+                  >
+                    {r}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-auto font-sans text-[11px] font-light leading-relaxed text-gris-texte">
+              Livraison et retours offerts · Fabrication européenne
+            </p>
           </nav>
-          <div className="mt-6 flex items-center justify-between">
-            <Social size="h-5 w-5" />
-            <LangSwitch />
-          </div>
-        </div>
+        </>
       )}
     </header>
   )

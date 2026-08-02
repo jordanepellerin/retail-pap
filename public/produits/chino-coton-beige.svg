@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800" role="img" aria-label="chino-coton-beige">
+  <defs>
+    <filter id="ombre" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+  <rect width="600" height="800" fill="#F4F2EF"/>
+  <g filter="url(#ombre)"><g id="moitie"><path d="M300 202 L200 202 L193 642 C192 652 198 658 208 658 L266 658 C275 658 281 652 282 643 L300 300 Z" fill="#CBB894" stroke="#000" stroke-opacity="0.10" stroke-width="2"/><path d="M300 168 L200 168 L200 202 L300 202 Z" fill="#AE9B78" stroke="#000" stroke-opacity="0.10" stroke-width="2"/><path d="M243 210 V652" stroke="#fff" stroke-opacity="0.20" stroke-width="2"/></g><use href="#moitie" transform="translate(600,0) scale(-1,1)"/><path d="M300 202 V300" stroke="#000" stroke-opacity="0.14" stroke-width="2"/></g>
+</svg>

@@ -9,7 +9,7 @@ export interface ImageReduite {
   h: number
 }
 
-function chargerImage(src: string): Promise<HTMLImageElement> {
+export function chargerImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'

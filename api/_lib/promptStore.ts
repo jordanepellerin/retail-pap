@@ -1,30 +1,38 @@
 // Store des prompts éditables — lecture Vercel Edge Config (sub-ms, sur chaque
-// appel analyze/render), écriture via l'API REST Vercel (rare : réglages admin).
-// Dégradation gracieuse : store vide/injoignable → valeurs par défaut ci-dessous,
-// identiques aux prompts historiques (comportement inchangé tant que rien n'est édité).
+// appel analyze/brief/render), écriture via l'API REST Vercel (réglages admin).
+// Dégradation gracieuse : store vide/injoignable → valeurs par défaut ci-dessous.
 
 import { get } from '@vercel/edge-config'
 import {
   ANALYZE_INSTRUCTIONS_MAX,
   RENDER_INSTRUCTIONS_MAX,
-  JUSTIFY_INSTRUCTIONS_MAX,
+  BRIEF_INSTRUCTIONS_MAX,
   type PromptConfig
 } from '../../src/types/admin.js'
 
 export const DEFAULT_PROMPT_CONFIG: PromptConfig = {
-  analyzeInstructions: `1. intent : identifie les artistes visés. Un nom explicite prime ; sinon, si la recherche décrit clairement l'univers d'un artiste (ex. « un homme avec une valise qui marche » → Bruno Catalano), renvoie cet artiste. Ne force jamais : liste vide si rien de net. Normalise les envies dans intent.motsCles (vocabulaire autorisé uniquement), mets les descriptions libres dans intent.sujets, les couleurs souhaitées dans intent.couleurs, et tailleSouhaitee si le client l'exprime (« grande pièce » → grande).
-2. photo (fournie : {{AVEC_PHOTO}}) : si aucune photo n'est fournie, renvoie photo: null. Sinon, propose jusqu'à 3 zones de placement (rectangles en % de l'image, x/y = coin haut-gauche). La zone 0 DOIT respecter le souhait du client s'il en a exprimé un. Pour une sculpture : surface sol ou meuble dégagée (console, buffet, coin de pièce) ; pour une peinture : pan de mur dégagé, à hauteur de regard. Évite fenêtres, portes et zones encombrées. Pour CHAQUE zone, renseigne aussi "quad" : les 4 coins EXACTS (haut-gauche, haut-droit, bas-droit, bas-gauche, en %) où l'œuvre doit être posée EN PERSPECTIVE sur le plan réel. Observe les lignes de fuite : si le mur s'éloigne vers un côté, ce côté de l'œuvre est plus court et légèrement décalé — le quad n'est PAS un simple rectangle si le mur est vu en angle. Si tu ne peux pas estimer la perspective, mets quad: null.
-3. échelle (seulement si photo fournie) : si le client donne la largeur d'un mur/plan (ex. « ce mur fait 110 cm »), fais coïncider zones[0] EXACTEMENT avec ce mur (bord gauche à bord droit du plan) et renseigne planLargeurCm = cette largeur en cm — c'est le repère le plus fiable, le code en déduira l'échelle. Renseigne aussi pxPerCm au plan de placement : PRIORITÉ ABSOLUE aux dimensions données par le client, sinon repères standards (porte ≈ 200–210 cm, assise ≈ 45 cm, plan de travail ≈ 90 cm, interrupteur ≈ 110 cm du sol, carrelage ≈ 60 cm). Indique le repère dans scaleSource. Décris aussi lumiere (direction, chaleur), styleInterieur et couleursDominantes.`,
-  renderInstructions: `- ÉCHELLE (crucial) : respecte scrupuleusement les dimensions réelles indiquées et VÉRIFIE-les contre les objets-repères visibles dans la photo — prise électrique (~25 cm du sol), interrupteur (~110 cm du sol), poignée de porte (~105 cm), plinthe, carrelage, mobilier. Une sculpture de 1 m posée au sol arrive juste sous un interrupteur, surtout pas au niveau du haut d'une porte. Si l'œuvre dépasse la largeur de son support, elle peut légèrement déborder.
-- PERSPECTIVE : aligne l'œuvre sur les lignes de fuite du mur ou du plan. Si le support est vu en angle, l'œuvre épouse cet angle.
-- LUMIÈRE : fais réagir sa surface à l'éclairage réel de la pièce ({{NOTES}}) — mêmes teintes, mêmes zones claires/sombres que son environnement immédiat.
-- OMBRES : ajoute une ombre de contact et une ombre portée douces et réalistes, cohérentes avec la direction de la lumière.
-- FIDÉLITÉ : reproduis l'œuvre fournie le plus fidèlement possible (mêmes formes, couleurs, composition et cadre) ; ne la redessine pas et ne la recadre pas.
-- Si l'œuvre est une {{KIND}} (sculpture) : pose-la sur son support avec une ombre au sol et un léger reflet si le sol est brillant.`,
-  justifyInstructions: `Le client a décrit son projet ci-dessus. En te basant UNIQUEMENT sur ce qu'il exprime :
-1. reformulation : reformule sa demande en UNE phrase élégante et fidèle, adressée au client (ex. « Vous recherchez un portrait coloré d'environ 1 m sur 1,50 m »). Reste concret, n'invente rien ; si la demande est vague, reste général sans extrapoler.
-2. justifications : pour CHAQUE artiste listé (dans le même ordre), rédige UNE à DEUX phrases (40 mots max) expliquant en quoi son univers répond à la demande, en faisant explicitement le lien avec ce que le client a décrit et en nommant l'artiste (ex. « L'homme à la valise que vous évoquez fait directement écho aux Voyageurs de Bruno Catalano »). Appuie-toi sur les univers et œuvres fournis. Sois sincère : si le lien est ténu, reste sobre et honnête plutôt que d'exagérer.
-Écris dans un français soigné, chaleureux et sans jargon.`
+  analyzeInstructions: `Extrais de la demande du client, et UNIQUEMENT ce qu'il exprime réellement :
+1. categories : les familles de produit visées, parmi {{CATEGORIES}}. « Un costume » → costume ; « une tenue complète pour un mariage » → costume, chemise, chaussures, accessoire. Liste vide si rien de net — ne devine pas.
+2. occasions : parmi {{OCCASIONS}}. Distingue bien « je me marie » (mariage-marie) de « je suis invité à un mariage » (mariage-invite). Un entretien d'embauche ou une réunion → bureau.
+3. matieres : uniquement des termes de cette liste — {{MATIERES}}. « Quelque chose de léger pour l'été » → lin. « Chaud » → laine, flanelle.
+4. couleurs : uniquement des termes de cette liste — {{COULEURS}}. « Navy » → bleu, marine. « Sombre » → noir ou marine selon le contexte, pas les deux.
+5. budgetMax : le plafond en euros si le client en donne un (« autour de 800 » → 800, « moins de 500 » → 500, « entre 400 et 700 » → 700). null sinon. Ne confonds pas avec une taille ou une pointure.
+6. coupe : slim (ajusté, cintré), tailored, regular (droit, ample, confortable), ou null.
+7. motsCles : mots du vocabulaire {{MOTS_CLES}} qui décrivent l'ambiance recherchée (« été », « hiver », « original », « classique »…). Maximum 6.
+Renseigne confiance entre 0 et 1 : basse si la demande est vague.`,
+
+  renderInstructions: `- TOMBÉ : le vêtement épouse la morphologie réelle de la personne — largeur d'épaules, tour de poitrine, longueur de bras et de jambes. Ne modifie ni sa carrure, ni sa taille, ni sa posture pour faire « mieux tomber » le vêtement.
+- MATIÈRE : rends le grain du tissu tel qu'il est sur l'image de référence — froissé du lin, duvet de la flanelle, brillance du satin, côtes du velours, tissage du tweed.
+- PLIS : ajoute les plis naturels aux points d'articulation (coudes, aine, genoux) et le léger cassé du pantalon sur la chaussure. Un vêtement parfaitement lisse n'est pas photoréaliste.
+- LUMIÈRE : les vêtements reçoivent exactement l'éclairage de la photo d'origine ({{NOTES}}) — même direction, même température, même intensité.
+- OMBRES : ombres portées cohérentes sur le corps et au sol, dans la continuité de celles déjà présentes dans la photo.
+- SUPERPOSITION : respecte l'ordre d'habillage réel — chemise sous la veste, col et poignets de chemise visibles, cravate sur la chemise et sous la veste, pochette dans la poche poitrine, ceinture à la taille du pantalon.
+- Pièces à faire porter, dans l'ordre : {{PIECES}}.`,
+
+  briefInstructions: `Le client a formulé sa demande ci-dessus, et nous en avons retenu une liste de critères.
+1. reformulation : reformule son besoin en UNE phrase, adressée à lui, qui reprend fidèlement les critères retenus (ex. « Vous cherchez un costume en lin clair pour un mariage en extérieur, dans une limite de 700 €. »). N'ajoute aucun critère qui ne figure pas dans la liste. Si la demande est vague, reste général plutôt que d'inventer.
+2. conseil : UNE phrase de parti pris de conseiller, en lien direct avec ce qu'il a demandé — une matière qui convient particulièrement, un piège à éviter, une association qui fonctionne (ex. « Pour un mariage en juin, le lin respire mieux que la laine — et son froissé fait partie de son allure. »). Reste sobre et honnête : pas de superlatifs, pas de promesse commerciale.
+Écris dans un français soigné, chaleureux et sans jargon. Vouvoie le client.`
 }
 
 /**
@@ -56,9 +64,9 @@ export async function getPromptConfig(): Promise<PromptConfig> {
       renderInstructions: texteValide(brut.renderInstructions, RENDER_INSTRUCTIONS_MAX)
         ? brut.renderInstructions
         : DEFAULT_PROMPT_CONFIG.renderInstructions,
-      justifyInstructions: texteValide(brut.justifyInstructions, JUSTIFY_INSTRUCTIONS_MAX)
-        ? brut.justifyInstructions
-        : DEFAULT_PROMPT_CONFIG.justifyInstructions
+      briefInstructions: texteValide(brut.briefInstructions, BRIEF_INSTRUCTIONS_MAX)
+        ? brut.briefInstructions
+        : DEFAULT_PROMPT_CONFIG.briefInstructions
     }
   } catch (e) {
     console.warn('Edge Config injoignable — prompts par défaut utilisés.', e)
@@ -85,7 +93,10 @@ export async function writePromptConfig(
     })
     if (!res.ok) {
       const detail = await res.text()
-      return { ok: false, error: `Écriture Edge Config refusée (${res.status}) : ${detail.slice(0, 300)}` }
+      return {
+        ok: false,
+        error: `Écriture Edge Config refusée (${res.status}) : ${detail.slice(0, 300)}`
+      }
     }
     return { ok: true }
   } catch (e) {

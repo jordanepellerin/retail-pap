@@ -4,20 +4,22 @@ export default {
   theme: {
     extend: {
       colors: {
-        'noir-bartoux': '#0A0A0A',
-        'blanc-bartoux': '#FFFFFF',
-        'or-bartoux': '#C9A96E',
-        'gris-clair': '#F5F5F5',
+        // Identité André Laurent : noir/blanc/gris chauds, un seul accent sable.
+        // Toute valeur ajoutée ici doit l'être aussi dans src/index.css (:root).
+        'noir-encre': '#0A0A0A',
+        'blanc-pur': '#FFFFFF',
+        sable: '#C2AD8C',
+        'gris-clair': '#F4F2EF',
         'gris-texte': '#6B6B6B',
-        'gris-bordure': '#E0E0E0',
-        'rouge-accent': '#8B0000'
+        'gris-bordure': '#E3E0DB',
+        'rouge-solde': '#8B1E1E'
       },
       fontFamily: {
-        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
         sans: ['Montserrat', 'system-ui', 'sans-serif']
       },
       maxWidth: {
-        content: '1280px'
+        content: '1440px'
       }
     }
   },

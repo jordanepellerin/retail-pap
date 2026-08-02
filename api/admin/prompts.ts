@@ -9,7 +9,7 @@ import { DEFAULT_PROMPT_CONFIG, getPromptConfig, writePromptConfig } from '../_l
 import {
   ANALYZE_INSTRUCTIONS_MAX,
   RENDER_INSTRUCTIONS_MAX,
-  JUSTIFY_INSTRUCTIONS_MAX,
+  BRIEF_INSTRUCTIONS_MAX,
   type PromptConfig
 } from '../../src/types/admin.js'
 
@@ -63,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   const b = body as Record<string, unknown>
   const analyze = typeof b.analyzeInstructions === 'string' ? b.analyzeInstructions.trim() : ''
   const render = typeof b.renderInstructions === 'string' ? b.renderInstructions.trim() : ''
-  const justify = typeof b.justifyInstructions === 'string' ? b.justifyInstructions.trim() : ''
+  const brief = typeof b.briefInstructions === 'string' ? b.briefInstructions.trim() : ''
   if (!analyze || analyze.length > ANALYZE_INSTRUCTIONS_MAX) {
     repondre(res, 400, {
       ok: false,
@@ -74,21 +74,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   if (!render || render.length > RENDER_INSTRUCTIONS_MAX) {
     repondre(res, 400, {
       ok: false,
-      error: `Instructions de rendu vides ou trop longues (max ${RENDER_INSTRUCTIONS_MAX} caractères).`
+      error: `Instructions d'essayage vides ou trop longues (max ${RENDER_INSTRUCTIONS_MAX} caractères).`
     })
     return
   }
-  if (!justify || justify.length > JUSTIFY_INSTRUCTIONS_MAX) {
+  if (!brief || brief.length > BRIEF_INSTRUCTIONS_MAX) {
     repondre(res, 400, {
       ok: false,
-      error: `Instructions de justification vides ou trop longues (max ${JUSTIFY_INSTRUCTIONS_MAX} caractères).`
+      error: `Instructions de reformulation vides ou trop longues (max ${BRIEF_INSTRUCTIONS_MAX} caractères).`
     })
     return
   }
   const config: PromptConfig = {
     analyzeInstructions: analyze,
     renderInstructions: render,
-    justifyInstructions: justify
+    briefInstructions: brief
   }
   const resultat = await writePromptConfig(config)
   if (!resultat.ok) {

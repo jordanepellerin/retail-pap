@@ -1,150 +1,163 @@
-// Matching catalogue 100 % code (0 $) — croise le type choisi, les artistes
-// détectés/nommés, l'intention normalisée par l'analyse IA et l'échelle réelle
-// estimée de la photo pour classer les œuvres avec des justifications FR.
+// Matching catalogue 100 % code (0 $) — croise l'intention normalisée avec les
+// métadonnées du catalogue pour classer les articles, avec des justifications
+// FR affichées en badges (« Lin, comme souhaité », « Dans votre budget »).
 
-import type { Oeuvre, Tag, WidgetState } from '../types'
-import type { AnalyseResult, MatchResult, PlacementZone } from '../types/ai'
-import { CATALOGUE } from '../data/catalogue'
-import { detectArtistes, normaliser } from './artistMatch'
+import type { Article, Categorie, Intention } from '../types'
+import type { MatchResult } from '../types/ai'
+import { CATALOGUE, LIBELLES_OCCASION } from '../data/catalogue'
+import { normaliser } from './intent'
 
-export interface MatchContext {
-  type: Tag
-  /** Restriction dure : vide = tous les artistes. */
-  artistes: string[]
-  motsCles: string[]
-  sujets: string[]
-  couleurs: string[]
-  tailleSouhaitee: 'petite' | 'moyenne' | 'grande' | null
-  /** Zone de placement retenue (zones[0] de l'analyse) et sa taille réelle estimée. */
-  zone: PlacementZone | null
-  zoneCm: { w: number; h: number } | null
+/** Catégories proposées à un visiteur qui n'a rien précisé. */
+const CATEGORIES_PAR_DEFAUT: Categorie[] = ['costume', 'veste', 'chemise']
+
+/**
+ * Familles complémentaires suggérées à l'étape « complétez la tenue », selon ce
+ * que le visiteur a déjà retenu. Une tenue se construit du haut vers le bas.
+ */
+const COMPLEMENTS: Record<Categorie, Categorie[]> = {
+  costume: ['chemise', 'chaussures', 'accessoire'],
+  veste: ['pantalon', 'chemise', 'chaussures', 'accessoire'],
+  pantalon: ['chemise', 'veste', 'chaussures', 'accessoire'],
+  chemise: ['costume', 'veste', 'pantalon', 'accessoire'],
+  maille: ['pantalon', 'veste', 'chaussures'],
+  chaussures: ['pantalon', 'chemise', 'accessoire'],
+  accessoire: ['chemise', 'costume', 'chaussures']
+}
+
+/** Un terme du besoin est-il présent dans une liste du catalogue ? */
+function intersecte(besoin: string[], catalogue: string[]): string[] {
+  const norm = catalogue.map(normaliser)
+  return besoin.filter((b) => norm.includes(normaliser(b)))
 }
 
 /**
- * Construit le contexte de matching depuis l'état du widget.
- * Les artistes détectés en code dans la recherche priment sur l'analyse IA
- * (`analyseOverride` permet d'utiliser un résultat pas encore dispatché).
+ * Classe le catalogue pour une intention donnée.
+ *
+ * Filtre DUR : la famille demandée. Le budget filtre aussi, mais SANS jamais
+ * conduire à une liste vide : si le plafond annoncé exclut toute la famille, on
+ * montre quand même les pièces avec un badge « Au-dessus de votre budget ».
+ * Une sélection vide est une impasse ; une sélection honnêtement étiquetée
+ * laisse le visiteur décider.
+ *
+ * Scores DOUX : occasion, matière, couleur, mots-clés, coupe.
+ *
+ * `categories` permet de restreindre au-delà de l'intention (phase
+ * « complétez la tenue », qui interroge d'autres familles).
  */
-export function buildMatchContext(
-  state: WidgetState,
-  analyseOverride?: AnalyseResult | null
-): MatchContext {
-  const analyse = analyseOverride !== undefined ? analyseOverride : state.analyse
-  const intent = analyse?.intent
-  const artistesCode = detectArtistes(state.recherche)
-  const artistes = artistesCode.length > 0 ? artistesCode : (intent?.artistes ?? [])
-
-  const zone = analyse?.photo?.zones[0] ?? null
-  const pxPerCm = analyse?.photo?.pxPerCm ?? null
-  let zoneCm: { w: number; h: number } | null = null
-  if (zone && pxPerCm && state.photoMeta) {
-    zoneCm = {
-      w: ((zone.w / 100) * state.photoMeta.w) / pxPerCm,
-      h: ((zone.h / 100) * state.photoMeta.h) / pxPerCm
-    }
-  }
-
-  return {
-    type: state.type ?? 'sculpture',
-    artistes,
-    motsCles: intent?.motsCles ?? [],
-    sujets: intent?.sujets ?? [],
-    couleurs: intent?.couleurs ?? [],
-    tailleSouhaitee: intent?.tailleSouhaitee ?? null,
-    zone,
-    zoneCm
-  }
-}
-
-/** Plus grande dimension connue de l'œuvre (cm), pour les bandes de taille. */
-function dimMax(o: Oeuvre): number | null {
-  const vals = [o.dims.h, o.dims.l].filter((v): v is number => v !== null)
-  return vals.length ? Math.max(...vals) : null
-}
-
-function bandeTaille(o: Oeuvre): 'petite' | 'moyenne' | 'grande' | null {
-  const d = dimMax(o)
-  if (d === null) return null
-  if (d < 60) return 'petite'
-  if (d <= 120) return 'moyenne'
-  return 'grande'
-}
-
-/** Score d'adéquation dimensionnelle (0–40), ou null si l'œuvre ne tient pas (> 120 %). */
-function scoreTaille(o: Oeuvre, ctx: MatchContext): { pts: number; raison: string | null } | null {
-  if (!ctx.zoneCm) return { pts: 0, raison: null }
-  if (o.tag === 'peinture') {
-    const larg = o.dims.l ?? o.dims.h
-    if (larg === null || ctx.zoneCm.w <= 0) return { pts: 0, raison: null }
-    const ratio = larg / ctx.zoneCm.w
-    if (ratio > 1.2) return null // ne tient physiquement pas dans la zone
-    if (ratio >= 0.55 && ratio <= 0.9) return { pts: 40, raison: 'Aux proportions de votre mur' }
-    if (ratio >= 0.35) return { pts: 20, raison: null }
-    return { pts: 0, raison: null }
-  }
-  // Sculpture : hauteur vs hauteur disponible de la zone.
-  const haut = o.dims.h
-  if (haut === null || ctx.zoneCm.h <= 0) return { pts: 0, raison: null }
-  const ratio = haut / ctx.zoneCm.h
-  if (ratio > 1.2) return null
-  if (ratio >= 0.4 && ratio <= 0.9) return { pts: 40, raison: "Adaptée à l'espace disponible" }
-  if (ratio >= 0.25) return { pts: 20, raison: null }
-  return { pts: 0, raison: null }
-}
-
-/**
- * Classe le catalogue selon le contexte. Filtres durs : type, artistes nommés,
- * œuvre physiquement trop grande. Scores doux : taille, format souhaité,
- * thèmes, couleurs. Contexte vide → ordre du catalogue, scores nuls (repli).
- */
-export function rankCatalogue(ctx: MatchContext): MatchResult[] {
-  const artistesNorm = ctx.artistes.map(normaliser)
-  const termes = [...ctx.motsCles, ...ctx.sujets].map(normaliser).filter(Boolean)
-  const couleursNorm = ctx.couleurs.map(normaliser)
+export function classerArticles(intention: Intention, categories?: Categorie[]): MatchResult[] {
+  const familles =
+    categories && categories.length > 0
+      ? categories
+      : intention.categories.length > 0
+        ? intention.categories
+        : CATEGORIES_PAR_DEFAUT
 
   const resultats: MatchResult[] = []
-  for (const o of CATALOGUE) {
-    if (o.tag !== ctx.type) continue
-    if (artistesNorm.length > 0 && !artistesNorm.includes(normaliser(o.artiste))) continue
+  for (const article of CATALOGUE) {
+    if (!familles.includes(article.categorie)) continue
 
-    const taille = scoreTaille(o, ctx)
-    if (taille === null) continue // trop grande pour la zone mesurée
-
-    let score = taille.pts
+    let score = 0
     const raisons: string[] = []
-    if (taille.raison) raisons.push(taille.raison)
-    if (artistesNorm.length > 0) raisons.push('Artiste demandé')
 
-    if (ctx.tailleSouhaitee && bandeTaille(o) === ctx.tailleSouhaitee) {
-      score += 15
-      raisons.push(`Format ${ctx.tailleSouhaitee} comme souhaité`)
+    const occasions = intention.occasions.filter((o) => article.occasions.includes(o))
+    if (occasions.length > 0) {
+      score += 40
+      raisons.push(`Pour ${LIBELLES_OCCASION[occasions[0]]}`)
     }
 
-    // Thèmes : mots-clés + sujets vs vocabulaire, titre et description de l'œuvre.
-    const corpus = normaliser(`${o.motsCles.join(' ')} ${o.titre} ${o.descriptionCourte}`)
-    let hits = 0
-    for (const terme of termes) {
-      if (corpus.includes(terme)) {
-        hits += 1
-        if (raisons.length < 4) raisons.push(`Thème : ${terme}`)
-      }
-    }
-    score += Math.min(30, hits * 10)
-
-    // Couleurs : accord entre les souhaits/l'intérieur et la palette de l'œuvre.
-    const paletteNorm = o.couleurs.map(normaliser)
-    const accords = couleursNorm.filter((c) => paletteNorm.includes(c)).length
-    if (accords > 0) {
-      score += Math.min(10, accords * 5)
-      raisons.push('Palette en harmonie')
+    const matieres = intersecte(intention.matieres, article.matieres)
+    if (matieres.length > 0) {
+      score += 25
+      raisons.push(`${matieres[0].charAt(0).toUpperCase()}${matieres[0].slice(1)}, comme souhaité`)
     }
 
-    resultats.push({ oeuvre: o, score, raisons: [...new Set(raisons)] })
+    const couleurs = intersecte(intention.couleurs, article.couleurs)
+    if (couleurs.length > 0) {
+      score += 20
+      raisons.push(`Teinte ${couleurs[0]}`)
+    }
+
+    // Mots-clés : ceux de l'intention confrontés au vocabulaire de l'article,
+    // à son nom et à sa description (« mariage », « été », « velours »…).
+    const corpus = normaliser(
+      `${article.motsCles.join(' ')} ${article.nom} ${article.descriptionCourte}`
+    )
+    const hits = intention.motsCles.filter((m) => m.length >= 3 && corpus.includes(normaliser(m)))
+    if (hits.length > 0) {
+      score += Math.min(15, hits.length * 8)
+      raisons.push(`Thème : ${hits[0]}`)
+    }
+
+    if (intention.coupe !== null && article.coupe === intention.coupe) {
+      score += 10
+      raisons.push('Coupe demandée')
+    }
+
+    // Un budget annoncé mérite d'être reconnu quand la pièce est confortablement
+    // dedans — pas quand elle l'effleure.
+    if (intention.budgetMax !== null && article.prix <= intention.budgetMax * 0.85) {
+      raisons.push('Dans votre budget')
+    }
+
+    resultats.push({ article, score, raisons: [...new Set(raisons)].slice(0, 3) })
   }
 
   // Tri stable : à score égal, l'ordre du catalogue est conservé.
-  return resultats
+  const classes = resultats
     .map((r, i) => ({ r, i }))
     .sort((a, b) => b.r.score - a.r.score || a.i - b.i)
     .map(({ r }) => r)
+
+  if (intention.budgetMax === null) return classes
+  const plafond = intention.budgetMax
+  const dansBudget = classes.filter((m) => m.article.prix <= plafond)
+  if (dansBudget.length > 0) return dansBudget
+  // Plafond intenable pour cette famille : on montre quand même, en le disant.
+  return classes.map((m) => ({
+    ...m,
+    raisons: ['Au-dessus de votre budget', ...m.raisons].slice(0, 3)
+  }))
+}
+
+/** Familles réellement demandées (avec repli), pour la phase 1 de la sélection. */
+export function categoriesDemandees(intention: Intention): Categorie[] {
+  return intention.categories.length > 0 ? intention.categories : CATEGORIES_PAR_DEFAUT
+}
+
+/**
+ * Familles à proposer en complément, dérivées de la tenue en cours puis de la
+ * demande initiale. Les familles dont un emplacement est déjà pris restent
+ * proposées : le visiteur peut vouloir changer d'avis (le remplacement est géré
+ * par `lib/tenue.ts`).
+ */
+export function categoriesComplementaires(
+  intention: Intention,
+  tenue: Article[]
+): Categorie[] {
+  const dejaDemandees = categoriesDemandees(intention)
+  const sources = tenue.length > 0 ? tenue.map((a) => a.categorie) : dejaDemandees
+  const suggerees: Categorie[] = []
+  for (const source of sources) {
+    for (const c of COMPLEMENTS[source]) {
+      if (!suggerees.includes(c) && !dejaDemandees.includes(c)) suggerees.push(c)
+    }
+  }
+  return suggerees
+}
+
+/**
+ * Reclasse une liste en poussant en tête les articles explicitement accordés
+ * aux pièces déjà retenues (`accords` du catalogue).
+ */
+export function prioriserAccords(matches: MatchResult[], tenue: Article[]): MatchResult[] {
+  if (tenue.length === 0) return matches
+  const accords = new Set(tenue.flatMap((a) => a.accords))
+  return matches
+    .map((m, i) => ({ m, i, accorde: accords.has(m.article.id) }))
+    .sort((a, b) => Number(b.accorde) - Number(a.accorde) || a.i - b.i)
+    .map(({ m, accorde }) =>
+      accorde && !m.raisons.includes('Va avec votre sélection')
+        ? { ...m, raisons: ['Va avec votre sélection', ...m.raisons].slice(0, 3) }
+        : m
+    )
 }

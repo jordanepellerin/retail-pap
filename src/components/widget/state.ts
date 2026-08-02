@@ -1,95 +1,113 @@
 import type { Dispatch } from 'react'
-import type { WidgetState, Step, Tag, Oeuvre, PhotoMeta } from '../../types'
-import { SELECTION_MAX } from '../../types'
-import type { AnalyseResult, JustifyResult, MatchResult } from '../../types/ai'
+import type {
+  Article,
+  Intention,
+  PhaseSelection,
+  PhotoMeta,
+  Step,
+  WidgetState
+} from '../../types'
+import type { AnalyseResult, BriefResult, MatchResult } from '../../types/ai'
+import { basculerArticle, retirerArticle } from '../../lib/tenue'
 
 export const initialWidgetState: WidgetState = {
   step: 'welcome',
-  type: 'sculpture', // pré-sélection par défaut à l'étape « type d'œuvre »
-  recherche: '',
+  demande: '',
+  reponses: {},
   photo: null,
   photoMeta: null,
-  description: '',
   analyse: null,
   analyseStatus: 'idle',
   matches: null,
-  justify: { status: 'idle', result: null },
+  brief: { status: 'idle', result: null },
   renderAI: { status: 'idle', image: null },
-  selection: [],
-  selected: null,
+  phase: 'demande',
+  tenue: [],
+  derniersRetires: [],
   email: '',
   message: ''
 }
 
 export type WidgetAction =
   | { type: 'GOTO'; step: Step }
-  | { type: 'SET_TYPE'; value: Tag }
-  | { type: 'SET_RECHERCHE'; value: string }
+  | { type: 'SET_DEMANDE'; value: string }
+  | { type: 'REPONDRE'; questionId: string; valeurs: string[] }
+  | { type: 'ANNULER_REPONSE'; questionId: string }
+  | { type: 'RESET_QUALIFICATION' }
   | { type: 'SET_PHOTO'; value: { dataUrl: string; meta: PhotoMeta } | null }
-  | { type: 'SET_DESCRIPTION'; value: string }
   | { type: 'SKIP_PHOTO' }
   | { type: 'ANALYSE_START' }
   | { type: 'ANALYSE_DONE'; value: AnalyseResult }
   | { type: 'ANALYSE_ERROR' }
   | { type: 'ANALYSE_SKIP' }
   | { type: 'SET_MATCHES'; value: MatchResult[] }
-  | { type: 'JUSTIFY_START' }
-  | { type: 'JUSTIFY_DONE'; value: JustifyResult }
-  | { type: 'JUSTIFY_ERROR' }
-  | { type: 'JUSTIFY_SKIP' }
+  | { type: 'BRIEF_START' }
+  | { type: 'BRIEF_DONE'; value: BriefResult }
+  | { type: 'BRIEF_ERROR' }
+  | { type: 'AFFINER_INTENTION'; value: Intention }
+  | { type: 'SET_PHASE'; value: PhaseSelection }
+  | { type: 'TOGGLE_ARTICLE'; value: Article }
+  | { type: 'RETIRER_ARTICLE'; id: string }
+  | { type: 'EFFACER_NOTICE' }
   | { type: 'RENDER_AI_START' }
-  | { type: 'RENDER_AI_DONE'; value: string; oeuvreId: string }
-  | { type: 'RENDER_AI_ERROR'; oeuvreId: string }
-  | { type: 'TOGGLE_SELECT'; value: Oeuvre }
-  | { type: 'SELECT'; value: Oeuvre }
+  | { type: 'RENDER_AI_RESET' }
+  | { type: 'RENDER_AI_DONE'; value: string; cle: string }
+  | { type: 'RENDER_AI_ERROR'; cle: string }
   | { type: 'SET_EMAIL'; value: string }
   | { type: 'SET_MESSAGE'; value: string }
   | { type: 'RESET' }
 
 export type WidgetDispatch = Dispatch<WidgetAction>
 
-/** Changer le type ou la recherche invalide l'analyse, le matching, la justification et le rendu. */
-const invalidation: Pick<
-  WidgetState,
-  'analyse' | 'analyseStatus' | 'matches' | 'justify' | 'renderAI'
-> = {
+/**
+ * Signature de la composition envoyée au rendu. Sert de garde anti-course : une
+ * réponse de rendu arrivée après un changement de tenue ou de photo est ignorée.
+ */
+export function cleRendu(state: WidgetState): string {
+  return `${state.photo?.length ?? 0}|${state.tenue.map((a) => a.id).join(',')}`
+}
+
+/**
+ * Changer la demande ou une réponse invalide tout l'aval : analyse, classement,
+ * reformulation. La tenue est conservée — le visiteur a fait ces choix
+ * lui-même, ce n'est pas au widget de les défaire.
+ */
+const invalidation: Pick<WidgetState, 'analyse' | 'analyseStatus' | 'matches' | 'brief'> = {
   analyse: null,
   analyseStatus: 'idle',
   matches: null,
-  justify: { status: 'idle', result: null },
+  brief: { status: 'idle', result: null }
+}
+
+/** La photo n'influence que le rendu. */
+const invalidationRendu: Pick<WidgetState, 'renderAI'> = {
   renderAI: { status: 'idle', image: null }
 }
 
 /**
- * La photo et la description arrivent APRÈS le matching (nouvel ordre) : elles
- * n'invalident que le rendu, l'analyse photo qui l'alimente et la justification
- * (qui reprend la description) — jamais la sélection déjà établie (matches conservés).
- */
-const invalidationRendu: Pick<
-  WidgetState,
-  'analyse' | 'analyseStatus' | 'justify' | 'renderAI'
-> = {
-  analyse: null,
-  analyseStatus: 'idle',
-  justify: { status: 'idle', result: null },
-  renderAI: { status: 'idle', image: null }
-}
-
-/**
- * Réducteur de la machine d'état conversationnelle.
- * Certaines saisies avancent d'elles-mêmes (choisir un type mène à la photo) ;
- * la photo et la sélection d'œuvre ne changent pas d'étape (l'utilisateur
- * confirme via un bouton « Continuer »).
+ * Réducteur de la machine d'état conversationnelle. Aucune saisie ne change
+ * d'étape d'elle-même sauf `SKIP_PHOTO` : le visiteur avance toujours par un
+ * bouton explicite, y compris pour lancer une génération.
  */
 export function widgetReducer(state: WidgetState, action: WidgetAction): WidgetState {
   switch (action.type) {
     case 'GOTO':
       return { ...state, step: action.step }
-    case 'SET_TYPE':
-      // Sélectionne le type sans avancer : l'utilisateur confirme via « Continuer ».
-      return { ...state, type: action.value, ...invalidation }
-    case 'SET_RECHERCHE':
-      return { ...state, recherche: action.value, ...invalidation }
+    case 'SET_DEMANDE':
+      return { ...state, demande: action.value, ...invalidation }
+    case 'REPONDRE':
+      return {
+        ...state,
+        reponses: { ...state.reponses, [action.questionId]: action.valeurs },
+        ...invalidation
+      }
+    case 'ANNULER_REPONSE': {
+      const reponses = { ...state.reponses }
+      delete reponses[action.questionId]
+      return { ...state, reponses, ...invalidation }
+    }
+    case 'RESET_QUALIFICATION':
+      return { ...state, reponses: {}, ...invalidation }
     case 'SET_PHOTO':
       return {
         ...state,
@@ -97,11 +115,10 @@ export function widgetReducer(state: WidgetState, action: WidgetAction): WidgetS
         photoMeta: action.value?.meta ?? null,
         ...invalidationRendu
       }
-    case 'SET_DESCRIPTION':
-      return { ...state, description: action.value, ...invalidationRendu }
     case 'SKIP_PHOTO':
-      // Ignorer la photo : on va directement au rendu (carte œuvre sans photo).
-      return { ...state, photo: null, photoMeta: null, ...invalidationRendu, step: 'render' }
+      // Sans photo, l'étape suivante reste la même : le récapitulatif de tenue.
+      // Le rendu affichera une planche au lieu d'un essayage.
+      return { ...state, photo: null, photoMeta: null, ...invalidationRendu, step: 'outfit' }
     case 'ANALYSE_START':
       return { ...state, analyse: null, analyseStatus: 'pending' }
     case 'ANALYSE_DONE':
@@ -109,50 +126,53 @@ export function widgetReducer(state: WidgetState, action: WidgetAction): WidgetS
     case 'ANALYSE_ERROR':
       return { ...state, analyse: null, analyseStatus: 'error' }
     case 'ANALYSE_SKIP':
-      // Pas d'appel IA nécessaire (artiste nommé sans photo, ou aucune entrée libre).
+      // Demande déjà entièrement lue en code : aucun appel réseau nécessaire.
       return { ...state, analyse: null, analyseStatus: 'skipped' }
     case 'SET_MATCHES':
       return { ...state, matches: action.value }
-    case 'JUSTIFY_START':
-      return { ...state, justify: { status: 'pending', result: null } }
-    case 'JUSTIFY_DONE':
-      return { ...state, justify: { status: 'done', result: action.value } }
-    case 'JUSTIFY_ERROR':
-      return { ...state, justify: { status: 'error', result: null } }
-    case 'JUSTIFY_SKIP':
-      return { ...state, justify: { status: 'skipped', result: null } }
+    case 'BRIEF_START':
+      return { ...state, brief: { status: 'pending', result: null } }
+    case 'BRIEF_DONE':
+      return { ...state, brief: { status: 'done', result: action.value } }
+    case 'BRIEF_ERROR':
+      return { ...state, brief: { status: 'error', result: null } }
+    case 'AFFINER_INTENTION':
+      // Retrait d'un critère depuis l'écran de brief : on réécrit l'intention
+      // côté analyse et on relance le classement (matches remis à null).
+      return {
+        ...state,
+        analyse: { intent: action.value, confiance: state.analyse?.confiance ?? 1 },
+        analyseStatus: 'done',
+        matches: null
+      }
+    case 'SET_PHASE':
+      return { ...state, phase: action.value }
+    case 'TOGGLE_ARTICLE': {
+      const { tenue, retires } = basculerArticle(state.tenue, action.value)
+      if (tenue === state.tenue) return state // plafond atteint
+      return { ...state, tenue, derniersRetires: retires, ...invalidationRendu }
+    }
+    case 'RETIRER_ARTICLE':
+      return {
+        ...state,
+        tenue: retirerArticle(state.tenue, action.id),
+        derniersRetires: [],
+        ...invalidationRendu
+      }
+    case 'EFFACER_NOTICE':
+      return { ...state, derniersRetires: [] }
     case 'RENDER_AI_START':
       return { ...state, renderAI: { status: 'pending', image: null } }
+    case 'RENDER_AI_RESET':
+      // « Réessayer » après un échec : repasser à idle relance l'effet de rendu.
+      return { ...state, ...invalidationRendu }
     case 'RENDER_AI_DONE':
-      // Réponse tardive (œuvre changée ou entrées invalidées entre-temps) : ignorée.
-      if (state.renderAI.status !== 'pending' || state.selected?.id !== action.oeuvreId) return state
+      // Réponse tardive (tenue ou photo changée entre-temps) : ignorée.
+      if (state.renderAI.status !== 'pending' || cleRendu(state) !== action.cle) return state
       return { ...state, renderAI: { status: 'done', image: action.value } }
     case 'RENDER_AI_ERROR':
-      if (state.renderAI.status !== 'pending' || state.selected?.id !== action.oeuvreId) return state
+      if (state.renderAI.status !== 'pending' || cleRendu(state) !== action.cle) return state
       return { ...state, renderAI: { status: 'error', image: null } }
-    case 'TOGGLE_SELECT': {
-      const deja = state.selection.some((o) => o.id === action.value.id)
-      if (deja) {
-        const selection = state.selection.filter((o) => o.id !== action.value.id)
-        // Si on retire l'œuvre en cours de visualisation, on bascule sur une
-        // autre de la liste (ou aucune) et on remet le rendu à zéro.
-        if (state.selected?.id === action.value.id) {
-          return {
-            ...state,
-            selection,
-            selected: selection[0] ?? null,
-            renderAI: { status: 'idle', image: null }
-          }
-        }
-        return { ...state, selection }
-      }
-      // Plafond atteint : on ignore l'ajout (l'UI le signale déjà).
-      if (state.selection.length >= SELECTION_MAX) return state
-      return { ...state, selection: [...state.selection, action.value] }
-    }
-    case 'SELECT':
-      // Changer d'œuvre visualisée invalide le rendu IA de la précédente.
-      return { ...state, selected: action.value, renderAI: { status: 'idle', image: null } }
     case 'SET_EMAIL':
       return { ...state, email: action.value }
     case 'SET_MESSAGE':
@@ -170,17 +190,17 @@ export interface StepProps {
 }
 
 /**
- * Étape précédente pour le bouton « Retour » (ordre : type → matching →
- * presentation → results → photo → render → lead). `presentation → type` saute
- * volontairement `matching` (transitoire, auto-animé) ; `presentation` et
- * `results` se redérivent tous deux de `state.matches` (conservés). Pas de
- * retour depuis `welcome`, `matching` ni `done`.
+ * Étape précédente pour le bouton « Retour ». `brief → qualify` saute
+ * volontairement `matching` (transitoire, auto-animé) ; `brief` se redérive de
+ * `state.matches`, conservé. Pas de retour depuis `welcome`, `matching` ni `done`.
  */
 export const previousStep: Partial<Record<Step, Step>> = {
-  type: 'welcome',
-  presentation: 'type',
-  results: 'presentation',
-  photo: 'results',
-  render: 'photo',
+  request: 'welcome',
+  qualify: 'request',
+  brief: 'qualify',
+  selection: 'brief',
+  photo: 'selection',
+  outfit: 'photo',
+  render: 'outfit',
   lead: 'render'
 }

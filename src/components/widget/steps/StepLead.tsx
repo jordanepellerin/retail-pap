@@ -3,6 +3,9 @@ import type { FormEvent } from 'react'
 import type { WidgetState } from '../../../types'
 import type { WidgetDispatch } from '../state'
 import { Prompt, Subtext, StepEyebrow, PrimaryButton } from '../ui'
+import { formatPrix } from '../../../data/catalogue'
+import { totalTenue } from '../../../lib/tenue'
+import { MESSAGE_MAX } from '../../../types/ai'
 
 interface StepLeadProps {
   state: WidgetState
@@ -13,7 +16,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function StepLead({ state, dispatch }: StepLeadProps) {
   const [sending, setSending] = useState(false)
-
   const valid = EMAIL_RE.test(state.email.trim())
 
   const submit = (e: FormEvent) => {
@@ -24,21 +26,24 @@ export default function StepLead({ state, dispatch }: StepLeadProps) {
     setTimeout(() => dispatch({ type: 'GOTO', step: 'done' }), 1500)
   }
 
-  const nb = state.selection.length
-  const objet =
-    nb > 1 ? `vos ${nb} coups de cœur` : `« ${state.selected?.titre ?? 'cette œuvre'} »`
+  const nb = state.tenue.length
 
   return (
     <form onSubmit={submit} className="flex min-h-full flex-col p-5">
       <StepEyebrow>Dernière étape</StepEyebrow>
-      <Prompt>Recevez les informations sur {objet}</Prompt>
-      <Subtext>Laissez votre email : le conseiller vous recontacte avec le rendu joint.</Subtext>
+      <Prompt>
+        Recevez votre tenue — {nb} pièce{nb > 1 ? 's' : ''}, {formatPrix(totalTenue(state.tenue))}
+      </Prompt>
+      <Subtext>
+        Je vous envoie la liste, les tailles disponibles et votre essayage en pièce jointe. Un
+        conseiller reste joignable si vous hésitez entre deux tailles.
+      </Subtext>
 
       <div className="mt-5 space-y-3">
         <input
           type="email"
           className="field"
-          placeholder="Votre adresse email"
+          placeholder="Votre adresse e-mail"
           autoComplete="email"
           value={state.email}
           disabled={sending}
@@ -47,7 +52,8 @@ export default function StepLead({ state, dispatch }: StepLeadProps) {
         <textarea
           className="field-area"
           rows={3}
-          placeholder="Un message pour le conseiller (facultatif)"
+          maxLength={MESSAGE_MAX}
+          placeholder="Une question sur les tailles ou les retouches ? (facultatif)"
           value={state.message}
           disabled={sending}
           onChange={(e) => dispatch({ type: 'SET_MESSAGE', value: e.target.value })}
@@ -56,10 +62,10 @@ export default function StepLead({ state, dispatch }: StepLeadProps) {
 
       <div className="mt-auto pt-6">
         <PrimaryButton type="submit" disabled={!valid || sending}>
-          {sending ? 'Envoi en cours…' : 'Envoyer ma demande'}
+          {sending ? 'Envoi en cours…' : 'Envoyer ma tenue'}
         </PrimaryButton>
         <p className="mt-3 text-center font-sans text-[10px] font-light leading-relaxed text-gris-texte">
-          Vos informations ne servent qu'à vous recontacter au sujet de votre sélection.
+          Vos informations ne servent qu’à vous envoyer cette sélection.
         </p>
       </div>
     </form>

@@ -10,7 +10,7 @@ interface WidgetProps {
 
 /**
  * Composant racine du widget conseiller.
- * - L'ouverture est pilotée par App (3 points d'entrée).
+ * - L'ouverture est pilotée par App (plusieurs points d'entrée sur la page).
  * - L'état conversationnel vit ici (useReducer) et persiste tant qu'on ne
  *   réinitialise pas : fermer puis rouvrir reprend là où on s'était arrêté.
  * - Le panneau (et donc les composants d'étapes) n'est monté que lorsque
@@ -29,9 +29,9 @@ export default function Widget({ open, setOpen }: WidgetProps) {
     return () => window.removeEventListener('keydown', onKey)
   }, [open, setOpen])
 
-  const browseCatalogue = () => {
+  const parcourirBoutique = () => {
     setOpen(false)
-    document.getElementById('coups-de-coeur')?.scrollIntoView({ behavior: 'smooth' })
+    document.getElementById('grille-produits')?.scrollIntoView({ behavior: 'smooth' })
   }
 
   return (
@@ -43,7 +43,7 @@ export default function Widget({ open, setOpen }: WidgetProps) {
           dispatch={dispatch}
           onClose={() => setOpen(false)}
           onRestart={() => dispatch({ type: 'RESET' })}
-          onBrowse={browseCatalogue}
+          onBrowse={parcourirBoutique}
         />
       )}
     </>

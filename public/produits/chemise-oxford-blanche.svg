@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800" role="img" aria-label="chemise-oxford-blanche">
+  <defs>
+    <pattern id="texC" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#F6F5F1"/>
+      <path d="M0 0H8M0 4H8" stroke="#000" stroke-opacity="0.05" stroke-width="1"/>
+      <path d="M2 0V8M6 0V8" stroke="#fff" stroke-opacity="0.10" stroke-width="1"/>
+    </pattern>
+    <pattern id="texS" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#E0DED7"/>
+      <path d="M0 0H8M0 4H8" stroke="#000" stroke-opacity="0.05" stroke-width="1"/>
+      <path d="M2 0V8M6 0V8" stroke="#fff" stroke-opacity="0.10" stroke-width="1"/>
+    </pattern>
+    <filter id="ombre" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+  <rect width="600" height="800" fill="#F4F2EF"/>
+  <g filter="url(#ombre)"><g id="moitie"><path d="M194 202 L124 224 C115 227 110 237 112 246 L134 462 C135 473 146 480 157 478 L212 468 C223 466 229 457 227 447 L208 240 Z" fill="url(#texS)" stroke="#000" stroke-opacity="0.10" stroke-width="2"/><path d="M300 176 C280 176 264 182 254 190 L196 206 C189 209 186 216 187 224 L200 330 L196 600 C196 607 201 612 208 612 L300 612 Z" fill="url(#texC)" stroke="#000" stroke-opacity="0.10" stroke-width="2"/><path d="M300 158 L254 174 L268 218 L300 190 Z" fill="url(#texS)" stroke="#000" stroke-opacity="0.10" stroke-width="2"/></g><use href="#moitie" transform="translate(600,0) scale(-1,1)"/><rect x="290" y="188" width="20" height="424" fill="#b3b2ac" opacity="0.35"/><circle cx="300" cy="232" r="4.5" fill="#000" fill-opacity="0.2"/><circle cx="300" cy="288" r="4.5" fill="#000" fill-opacity="0.2"/><circle cx="300" cy="344" r="4.5" fill="#000" fill-opacity="0.2"/><circle cx="300" cy="400" r="4.5" fill="#000" fill-opacity="0.2"/><circle cx="300" cy="456" r="4.5" fill="#000" fill-opacity="0.2"/><circle cx="300" cy="512" r="4.5" fill="#000" fill-opacity="0.2"/><circle cx="300" cy="568" r="4.5" fill="#000" fill-opacity="0.2"/></g>
+</svg>
