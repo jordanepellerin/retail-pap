@@ -5,7 +5,7 @@
 // repart avec un visuel de sa tenue plutôt qu'avec un écran d'erreur.
 
 import type { Article } from '../types'
-import { formatPrix } from '../data/catalogue'
+import { formatPrix, visuelArticle } from '../data/catalogue'
 import { chargerImage } from './image'
 import { drawGradientRect } from './gradient'
 
@@ -79,8 +79,12 @@ export async function composerPlanche(articles: Article[], sousTitre: string): P
   const hauteurVisuel = hauteurCase - 66
   const departY = 190
 
+  // Photo si elle existe, SVG sinon — même repli que le reste de l'interface.
   const images = await Promise.all(
-    articles.map((a) => chargerImage(a.image).catch(() => null))
+    articles.map(async (a) => {
+      const { src, secours } = visuelArticle(a)
+      return chargerImage(src).catch(() => chargerImage(secours).catch(() => null))
+    })
   )
 
   articles.forEach((article, i) => {

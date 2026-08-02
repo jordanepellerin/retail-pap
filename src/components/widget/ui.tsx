@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Article } from '../../types'
-import { formatPrix } from '../../data/catalogue'
+import { formatPrix, surErreurVisuel, visuelArticle } from '../../data/catalogue'
 
 /** Question/intitulé d'étape en registre éditorial (serif). */
 export function Prompt({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -124,19 +124,18 @@ export function VignetteArticle({
   article: Article
   taille?: number
 }) {
+  const { src, secours } = visuelArticle(article)
   return (
     <span
       className="block shrink-0 overflow-hidden border border-white/10"
       style={{ width: taille, height: taille * 1.25, background: article.gradient }}
     >
       <img
-        src={article.image}
+        src={src}
         alt=""
         aria-hidden="true"
         className="h-full w-full object-cover"
-        onError={(e) => {
-          e.currentTarget.style.visibility = 'hidden'
-        }}
+        onError={(e) => surErreurVisuel(e, secours)}
       />
     </span>
   )

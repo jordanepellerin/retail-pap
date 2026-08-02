@@ -3,7 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import AdminPrompts from './pages/AdminPrompts'
 import Nav from './components/Nav'
 import CategoryHero from './components/CategoryHero'
-import ProductGrid from './components/ProductGrid'
+import ProductGrid, { SectionCategorie } from './components/ProductGrid'
 import Services from './components/Services'
 import Footer from './components/Footer'
 import Widget from './components/widget/Widget'
@@ -12,7 +12,12 @@ interface BoutiqueProps {
   onOpenWidget: () => void
 }
 
-/** Page catégorie « Costumes » — le contexte dans lequel le widget est testé. */
+/**
+ * Boutique de démonstration — le contexte dans lequel le widget est testé.
+ * La page s'ouvre sur la catégorie Costumes (en-tête éditorial + filtres), puis
+ * déroule les autres familles : le widget propose des tenues complètes, la
+ * vitrine doit montrer les mêmes familles.
+ */
 function Boutique({ onOpenWidget }: BoutiqueProps) {
   return (
     <>
@@ -20,6 +25,9 @@ function Boutique({ onOpenWidget }: BoutiqueProps) {
       <main>
         <CategoryHero />
         <ProductGrid />
+        <SectionCategorie categorie="veste" />
+        <SectionCategorie categorie="pantalon" />
+        <SectionCategorie categorie="chemise" />
         <Services onOpenWidget={onOpenWidget} />
       </main>
       <Footer />

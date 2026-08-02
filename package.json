@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "visuels": "node scripts/generer-visuels.mjs"
+    "visuels": "node scripts/generer-visuels.mjs",
+    "photos": "node scripts/generer-photos.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.10.0",

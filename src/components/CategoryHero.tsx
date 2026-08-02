@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { parId } from '../data/catalogue'
+import { parId, surErreurVisuel, visuelArticle } from '../data/catalogue'
 
 const SOUS_CATEGORIES = ['Costumes en lin', 'Smoking', 'Costumes en laine', 'Velours']
 
@@ -14,7 +14,8 @@ Chaque pièce se vend séparément : vous choisissez la taille de la veste et ce
  */
 export default function CategoryHero() {
   const [deplie, setDeplie] = useState(false)
-  const visuel = parId('c3')
+  const article = parId('c3')
+  const visuel = visuelArticle(article)
 
   return (
     <section className="mx-auto max-w-content px-4 sm:px-8">
@@ -56,9 +57,10 @@ export default function CategoryHero() {
 
         <div className="order-first aspect-[4/3] w-full overflow-hidden bg-gris-clair lg:order-none">
           <img
-            src={visuel.image}
-            alt={`${visuel.nom} — ${visuel.couleur}`}
-            className="h-full w-full object-contain"
+            src={visuel.src}
+            alt={`${article.nom} — ${article.couleur}`}
+            onError={(e) => surErreurVisuel(e, visuel.secours)}
+            className="h-full w-full object-cover"
           />
         </div>
       </div>

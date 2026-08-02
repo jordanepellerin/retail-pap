@@ -3,7 +3,12 @@ import type { Article, Categorie, WidgetState } from '../../../types'
 import type { MatchResult } from '../../../types/ai'
 import type { WidgetDispatch } from '../state'
 import { Prompt, Subtext, StepEyebrow, PrimaryButton, SecondaryButton, VignetteArticle } from '../ui'
-import { LIBELLES_CATEGORIE, formatPrix } from '../../../data/catalogue'
+import {
+  LIBELLES_CATEGORIE,
+  formatPrix,
+  surErreurVisuel,
+  visuelArticle
+} from '../../../data/catalogue'
 import { intentionCourante } from '../../../lib/intent'
 import {
   categoriesComplementaires,
@@ -67,6 +72,7 @@ function CarrouselCategorie({
         >
           {matches.map(({ article, raisons }) => {
             const actif = retenus.has(article.id)
+            const { src, secours } = visuelArticle(article)
             return (
               <button
                 key={article.id}
@@ -81,12 +87,10 @@ function CarrouselCategorie({
                   style={{ background: 'linear-gradient(180deg,#141414,#0D0D0D)' }}
                 >
                   <img
-                    src={article.image}
+                    src={src}
                     alt={article.nom}
                     className="h-full w-full object-contain"
-                    onError={(e) => {
-                      e.currentTarget.style.visibility = 'hidden'
-                    }}
+                    onError={(e) => surErreurVisuel(e, secours)}
                   />
                 </div>
 
