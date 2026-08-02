@@ -5,7 +5,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Type, type Schema } from '@google/genai'
-import { getGemini, ANALYZE_MODEL, ANALYZE_MODEL_FALLBACK } from './_lib/gemini.js'
+import { getGemini, ANALYZE_MODELS, avecMeilleurModele } from './_lib/gemini.js'
 import { lireBody, repondre, throttle } from './_lib/validate.js'
 import { applyTemplate, getPromptConfig } from './_lib/promptStore.js'
 import { sanitizeBrief, DEMANDE_MAX } from '../src/types/ai.js'
@@ -90,34 +90,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const config = await getPromptConfig()
     const prompt = construirePrompt(config.briefInstructions, demande, criteres, categories)
 
-    const appeler = (model: string) =>
-      gemini.models.generateContent({
-        model,
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        config: {
-          temperature: 0.6,
-          responseMimeType: 'application/json',
-          responseSchema: briefSchema
-        }
-      })
-
-    // Meilleur modèle d'abord ; repli sur le GA connu si indisponible (404…).
-    let modeleUtilise = ANALYZE_MODEL
-    let reponse
-    try {
-      reponse = await appeler(ANALYZE_MODEL)
-    } catch (err) {
-      if (ANALYZE_MODEL_FALLBACK && ANALYZE_MODEL_FALLBACK !== ANALYZE_MODEL) {
-        const raison = err instanceof Error ? err.message : 'inconnue'
-        console.warn(
-          `Brief : ${ANALYZE_MODEL} indisponible (${raison}) — repli sur ${ANALYZE_MODEL_FALLBACK}.`
-        )
-        modeleUtilise = ANALYZE_MODEL_FALLBACK
-        reponse = await appeler(ANALYZE_MODEL_FALLBACK)
-      } else {
-        throw err
-      }
-    }
+    // Meilleur modèle ouvert sur la clé, avec cascade automatique vers le
+    // suivant s'il est fermé, saturé ou surchargé.
+    const { resultat: reponse, modele: modeleUtilise } = await avecMeilleurModele(
+      ANALYZE_MODELS,
+      'Brief',
+      (model) =>
+        gemini.models.generateContent({
+          model,
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          config: {
+            temperature: 0.6,
+            responseMimeType: 'application/json',
+            responseSchema: briefSchema
+          }
+        })
+    )
 
     const brut: unknown = JSON.parse(reponse.text ?? 'null')
     const propre = sanitizeBrief(brut)

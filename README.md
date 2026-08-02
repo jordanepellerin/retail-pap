@@ -22,8 +22,8 @@ reformulation, classement en pur code ; planche produit au lieu de l'essayage).
 - React Router v6 (boutique + `/admin`)
 - État du widget : `useReducer` (machine d'état) + `useState`
 - IA : Google Gemini via `@google/genai` — lecture de la demande et
-  reformulation (`gemini-3.1-pro-preview`), essayage
-  (`gemini-3-pro-image`, « Nano Banana Pro »)
+  reformulation, puis essayage (« Nano Banana Pro »). Aucun identifiant de
+  modèle n'est figé : voir _Choix du modèle_ ci-dessous.
 
 ## Démarrer en local
 
@@ -135,6 +135,30 @@ Garde-fous de coût : caches par hash (1 analyse par demande, 1 essayage par
 photo × composition), déduplication des requêtes en vol, plafonds de longueur,
 throttle par IP, body ≤ 3,5 Mo. Coût typique : 2 appels texte courts + 1 image
 par session complète, 0 appel si le visiteur s'arrête avant le rendu.
+
+### Choix du modèle
+
+Un nom de modèle n'est pas une constante fiable : une preview passe GA, un
+modèle est renommé, une ouverture dépend du palier de facturation. Figer un
+identifiant, c'est accepter que tous les appels échouent le jour où il change.
+
+`api/_lib/gemini.ts` tient donc une **liste de préférence** par usage, du plus
+capable au plus sûr, et ne parie sur rien :
+
+1. **Découverte** — un appel `models.list` par instance (démarrage à froid),
+   mémorisé y compris en cas d'échec, timeout 5 s : on demande à l'API ce que la
+   clé ouvre réellement.
+2. **Cascade** — `avecMeilleurModele()` exécute l'appel sur le premier modèle
+   retenu et passe au suivant sur 404/403/429/503, quota ou surcharge. Une
+   erreur qui ne vient pas du modèle (prompt ou schéma invalide) remonte
+   immédiatement : elle se reproduirait à l'identique partout.
+
+Avec une clé gratuite, la cascade descend d'elle-même vers les modèles GA. Les
+variables `ANALYZE_MODEL` et `RENDER_MODEL` acceptent une liste séparée par des
+virgules, placée en tête des défauts — de quoi épingler un modèle sans toucher
+au code. Au premier appel, les logs affichent
+`Gemini : N modèles ouverts sur la clé — analyse … ; essayage …`, puis le modèle
+réellement utilisé pour chaque génération.
 
 ## Visuels produits
 

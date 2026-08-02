@@ -9,7 +9,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { lireBody, repondre, throttle } from './_lib/validate.js'
 import { applyTemplate, getPromptConfig } from './_lib/promptStore.js'
 import { creerProviderGemini } from './_lib/renderProviders/gemini.js'
-import { RENDER_MODEL } from './_lib/gemini.js'
 import {
   isImageDataUrl,
   sanitizeRenderArticle,
@@ -104,8 +103,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     repondre(res, 503, { ok: false, error: 'Essayage IA indisponible (clé API absente).' })
     return
   }
+  // Le modèle réellement retenu est journalisé par le provider, qui seul le
+  // connaît une fois la cascade tranchée.
   console.log(
-    `Essayage via Nano Banana Pro (modèle ${RENDER_MODEL}) — ${articles.length} pièce(s), ` +
+    `Essayage demandé — ${articles.length} pièce(s), ` +
       `emplacements=[${[...new Set(articles.flatMap((a) => a.slots))].join(',')}].`
   )
 

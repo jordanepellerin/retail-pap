@@ -74,15 +74,30 @@ export async function getPromptConfig(): Promise<PromptConfig> {
   }
 }
 
-/** Écrit la config via l'API REST Vercel (nécessite EDGE_CONFIG_ID + VERCEL_API_TOKEN). */
+/**
+ * ID du store : `EDGE_CONFIG_ID` s'il est déclaré, sinon extrait de la chaîne de
+ * connexion `EDGE_CONFIG` (auto-injectée en connectant le store au projet) —
+ * une variable de moins à saisir à la main.
+ */
+function edgeConfigId(): string | null {
+  const explicite = process.env.EDGE_CONFIG_ID?.trim()
+  if (explicite) return explicite
+  return /\/(ecfg_[A-Za-z0-9]+)/.exec(process.env.EDGE_CONFIG ?? '')?.[1] ?? null
+}
+
+/** Écrit la config via l'API REST Vercel (nécessite le store + VERCEL_API_TOKEN). */
 export async function writePromptConfig(
   config: PromptConfig
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const id = process.env.EDGE_CONFIG_ID
+  const id = edgeConfigId()
   const token = process.env.VERCEL_API_TOKEN
   const teamId = process.env.VERCEL_TEAM_ID
   if (!id || !token) {
-    return { ok: false, error: 'EDGE_CONFIG_ID ou VERCEL_API_TOKEN manquant (variables Vercel).' }
+    const manquantes = [
+      id ? null : 'EDGE_CONFIG_ID (ou la connexion du store, qui injecte EDGE_CONFIG)',
+      token ? null : 'VERCEL_API_TOKEN'
+    ].filter(Boolean)
+    return { ok: false, error: `Variables Vercel manquantes : ${manquantes.join(' et ')}.` }
   }
   const url = `https://api.vercel.com/v1/edge-config/${id}/items${teamId ? `?teamId=${teamId}` : ''}`
   try {
