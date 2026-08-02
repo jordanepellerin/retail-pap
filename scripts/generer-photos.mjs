@@ -1,5 +1,14 @@
 // Génère les VRAIES photos produit de public/produits/ avec Gemini.
 //
+// Le plus simple, une fois pour toutes (le fichier est déjà ignoré par git,
+// cf. .gitignore : *.local) :
+//
+//     cp .env.example .env.local
+//     # éditer .env.local, renseigner GOOGLE_API_KEY
+//     npm run photos
+//
+// Ou en une ligne, si la variable d'env est déjà positionnée dans le shell :
+//
 //     GOOGLE_API_KEY=... npm run photos            # tout ce qui manque
 //     GOOGLE_API_KEY=... npm run photos -- --force # régénère tout
 //     GOOGLE_API_KEY=... npm run photos -- c1 v2   # seulement ces articles
@@ -18,6 +27,30 @@ import { fileURLToPath } from 'node:url'
 import { GoogleGenAI } from '@google/genai'
 
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
+
+// ─────────────────────────────── .env.local
+// Lu manuellement (pas de dépendance dotenv) : une variable déjà présente dans
+// le shell (CI, export préalable) garde toujours la priorité sur le fichier.
+function chargerEnvLocal() {
+  const chemin = join(RACINE, '.env.local')
+  if (!existsSync(chemin)) return
+  for (const ligne of readFileSync(chemin, 'utf-8').split('\n')) {
+    const l = ligne.trim()
+    if (!l || l.startsWith('#')) continue
+    const i = l.indexOf('=')
+    if (i < 0) continue
+    const cle = l.slice(0, i).trim()
+    let valeur = l.slice(i + 1).trim()
+    if (
+      (valeur.startsWith('"') && valeur.endsWith('"')) ||
+      (valeur.startsWith("'") && valeur.endsWith("'"))
+    ) {
+      valeur = valeur.slice(1, -1)
+    }
+    if (cle && !(cle in process.env)) process.env[cle] = valeur
+  }
+}
+chargerEnvLocal()
 const SORTIE = join(RACINE, 'public', 'produits')
 
 // Ordre de préférence, comme côté serveur : on ne parie pas sur un identifiant.
@@ -120,8 +153,13 @@ INTERDITS : aucun logo, aucune marque, aucun texte, aucun filigrane, aucun carto
 // manque — l'utilisateur mérite un seul message, et le bon.
 if (!process.env.GOOGLE_API_KEY) {
   console.error(
-    'GOOGLE_API_KEY absente.\n' +
-      'Usage : GOOGLE_API_KEY=votre_cle npm run photos\n' +
+    'GOOGLE_API_KEY absente.\n\n' +
+      'Le plus simple :\n' +
+      '  cp .env.example .env.local\n' +
+      '  # éditer .env.local, renseigner GOOGLE_API_KEY=votre_cle\n' +
+      '  npm run photos\n\n' +
+      'Ou en une ligne :\n' +
+      '  GOOGLE_API_KEY=votre_cle npm run photos\n\n' +
       'La clé se récupère sur https://aistudio.google.com/apikey — la même que celle du projet Vercel.'
   )
   process.exit(1)
