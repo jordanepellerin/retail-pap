@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import AdminPrompts from './pages/AdminPrompts'
+import FicheProduit from './pages/FicheProduit'
 import Nav from './components/Nav'
 import CategoryHero from './components/CategoryHero'
 import ProductGrid, { SectionCategorie } from './components/ProductGrid'
@@ -47,6 +48,7 @@ export default function App() {
     <>
       <Routes>
         <Route path="/" element={<Boutique onOpenWidget={openWidget} />} />
+        <Route path="/produit/:id" element={<FicheProduit />} />
         <Route path="/admin" element={<AdminPrompts />} />
         <Route path="*" element={<Boutique onOpenWidget={openWidget} />} />
       </Routes>
