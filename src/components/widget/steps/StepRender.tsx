@@ -7,7 +7,8 @@ import { StepEyebrow, PrimaryButton, SecondaryButton, VignetteArticle } from '..
 import { DownloadIcon } from '../../icons'
 import Logo from '../../Logo'
 import { formatPrix } from '../../../data/catalogue'
-import { downscaleDataUrl, versJpegBlob } from '../../../lib/image'
+import { downscaleDataUrl } from '../../../lib/image'
+import { partagerOuTelecharger, preparerFichierJpg } from '../../../lib/partage'
 import { composerPlanche } from '../../../lib/planche'
 import { totalTenue } from '../../../lib/tenue'
 import { intentionCourante } from '../../../lib/intent'
@@ -19,6 +20,8 @@ interface StepRenderProps {
   state: WidgetState
   dispatch: WidgetDispatch
 }
+
+const NOM_FICHIER = 'andre-laurent-essayage.jpg'
 
 export default function StepRender({ state, dispatch }: StepRenderProps) {
   // Planche « flat lay » : affichée sans photo, et en secours si le rendu échoue.
@@ -98,11 +101,9 @@ export default function StepRender({ state, dispatch }: StepRenderProps) {
       return
     }
     let annule = false
-    versJpegBlob(visuel)
-      .then((blob) => {
-        if (!annule) {
-          setFichierJpg(new File([blob], 'andre-laurent-essayage.jpg', { type: 'image/jpeg' }))
-        }
+    preparerFichierJpg(visuel, NOM_FICHIER)
+      .then((fichier) => {
+        if (!annule) setFichierJpg(fichier)
       })
       .catch(() => {
         if (!annule) setFichierJpg(null)
@@ -119,48 +120,12 @@ export default function StepRender({ state, dispatch }: StepRenderProps) {
     dispatch({ type: 'RENDER_AI_RESET' })
   }
 
-  const declencherTelechargement = (url: string, nom: string) => {
-    const a = document.createElement('a')
-    a.href = url
-    a.download = nom
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-  }
-
   const telecharger = async () => {
-    const nav = navigator as unknown as {
-      share?: (data: { files?: File[]; title?: string }) => Promise<void>
-      canShare?: (data: { files?: File[] }) => boolean
-    }
-    const surMobile =
-      typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches === true
-
-    // Mobile : le partage natif range le JPG dans la pellicule (impossible via
-    // un simple téléchargement sur iOS). On n'y va que si le fichier est prêt.
-    if (surMobile && fichierJpg && nav.share && nav.canShare?.({ files: [fichierJpg] })) {
-      try {
-        await nav.share({ files: [fichierJpg], title: 'Ma tenue André Laurent' })
-        return
-      } catch (e) {
-        if (e instanceof DOMException && e.name === 'AbortError') return // partage annulé
-        // autre erreur → repli sur le téléchargement fichier ci-dessous
-      }
-    }
-
-    let blob: Blob | null = fichierJpg
-    if (!blob) {
-      if (!visuel) return
-      try {
-        blob = await versJpegBlob(visuel)
-      } catch {
-        declencherTelechargement(visuel, 'andre-laurent-essayage.png')
-        return
-      }
-    }
-    const url = URL.createObjectURL(blob)
-    declencherTelechargement(url, 'andre-laurent-essayage.jpg')
-    setTimeout(() => URL.revokeObjectURL(url), 10_000)
+    if (!visuel) return
+    await partagerOuTelecharger(visuel, fichierJpg, {
+      nom: NOM_FICHIER,
+      titre: 'Ma tenue André Laurent'
+    })
   }
 
   return (
