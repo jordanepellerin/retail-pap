@@ -73,11 +73,13 @@ export default function WidgetPanel({ state, dispatch, onClose, onRestart }: Wid
   const panelCls = expanded
     ? // Centrage par `inset-0 m-auto` (pas de transform, pour ne pas entrer en
       // conflit avec le transform final de l'animation d'ouverture).
-      // `relative` : c'est ce conteneur qui ancre les fenêtres internes du
-      // widget (choix des familles), pour qu'elles se superposent au panneau et
-      // non à la page — et que son `overflow-hidden` les rogne à ses bords.
-      'anim-widget-open fixed inset-0 z-50 m-auto flex h-[min(760px,calc(100vh-32px))] w-[min(680px,calc(100vw-32px))] flex-col overflow-hidden border border-sable/30 bg-noir-encre shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative'
-    : 'anim-widget-open fixed inset-2 z-50 flex flex-col overflow-hidden border border-sable/30 bg-noir-encre shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative sm:inset-auto sm:bottom-[84px] sm:right-6 sm:h-[600px] sm:max-h-[calc(100vh-120px)] sm:w-[400px] sm:max-w-[calc(100vw-32px)]'
+      // NE JAMAIS ajouter `relative` ici pour ancrer une fenêtre interne : dans
+      // le CSS compilé, `.relative` est écrit APRÈS `.fixed`, il gagne quel que
+      // soit l'ordre des classes, et le panneau retombe dans le flux de la page.
+      // `position: fixed` est déjà un bloc conteneur pour les enfants
+      // `absolute` — c'est ce qui ancre ModaleFamilles au panneau.
+      'anim-widget-open fixed inset-0 z-50 m-auto flex h-[min(760px,calc(100vh-32px))] w-[min(680px,calc(100vw-32px))] flex-col overflow-hidden border border-sable/30 bg-noir-encre shadow-[0_40px_100px_rgba(0,0,0,0.8)]'
+    : 'anim-widget-open fixed inset-2 z-50 flex flex-col overflow-hidden border border-sable/30 bg-noir-encre shadow-[0_40px_100px_rgba(0,0,0,0.8)] sm:inset-auto sm:bottom-[84px] sm:right-6 sm:h-[600px] sm:max-h-[calc(100vh-120px)] sm:w-[400px] sm:max-w-[calc(100vw-32px)]'
 
   return (
     <>
