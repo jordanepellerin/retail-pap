@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { WidgetState } from '../../../types'
-import type { RenderArticle } from '../../../types/ai'
 import type { WidgetDispatch } from '../state'
 import { cleRendu } from '../state'
 import { StepEyebrow, PrimaryButton, SecondaryButton, VignetteArticle } from '../ui'
 import { DownloadIcon } from '../../icons'
 import Logo from '../../Logo'
 import { formatPrix } from '../../../data/catalogue'
-import { downscaleDataUrl } from '../../../lib/image'
+import { visuelsPourRendu } from '../../../lib/look'
 import { partagerOuTelecharger, preparerFichierJpg } from '../../../lib/partage'
 import { composerPlanche } from '../../../lib/planche'
 import { totalTenue } from '../../../lib/tenue'
@@ -52,12 +51,11 @@ export default function StepRender({ state, dispatch }: StepRenderProps) {
     const run = async () => {
       dispatch({ type: 'RENDER_AI_START' })
       try {
-        const visuels = await Promise.all(
-          tenue.slice(0, RENDER_ARTICLES_MAX).map(async (a): Promise<RenderArticle> => {
-            const reduit = await downscaleDataUrl(a.image, 768)
-            return { image: reduit.dataUrl, slots: a.slots, description: a.descriptionRendu }
-          })
-        )
+        // Les visuels partent via `visuelsPourRendu` : la PHOTO produit, avec
+        // repli sur le SVG. Envoyer `a.image` (le SVG stylisé) donnait au modèle
+        // une référence vectorielle plate, qu'il reproduisait fidèlement — d'où
+        // des essayages en aplats cernés de noir au lieu de vraies étoffes.
+        const visuels = await visuelsPourRendu(tenue.slice(0, RENDER_ARTICLES_MAX))
         const rendu = await rendre({
           photo,
           articles: visuels,

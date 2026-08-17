@@ -17,10 +17,14 @@ export function formatPrix(euros: number): string {
  * Visuel d'un article : la photo si elle a été générée, le SVG sinon.
  *
  * Le catalogue ne référence qu'un chemin (`image`, en `.svg`). Tant que
- * `npm run photos` n'a pas tourné, `<slug>.jpg` n'existe pas. Le repli est
- * assuré par le composant `VisuelProduit`, qui seul doit consommer cette
- * fonction : le jour où les photos sont déposées, le site bascule dessus sans
- * une ligne de code à changer.
+ * `npm run photos` n'a pas tourné, `<slug>.jpg` n'existe pas : le repli sur le
+ * SVG est donc porté par les consommateurs — `VisuelProduit` (onError), la
+ * planche `lib/planche.ts` et `visuelsPourRendu` (lib/look.ts).
+ *
+ * TOUT ce qui montre un article passe par ici, y compris ce qu'on envoie au
+ * modèle d'essayage : lui donner le SVG stylisé pour référence lui fait rendre
+ * des aplats vectoriels au lieu d'étoffes. `Article.image` ne doit jamais être
+ * consommé directement.
  */
 export function visuelArticle(article: Article): { src: string; secours: string } {
   return { src: article.image.replace(/\.svg$/, '.jpg'), secours: article.image }
