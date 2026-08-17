@@ -3,6 +3,7 @@ import type { Article } from '../../types'
 import { RENDER_ARTICLES_MAX } from '../../types/ai'
 import { formatPrix } from '../../data/catalogue'
 import { rendre } from '../../lib/aiClient'
+import { useSurMobile } from '../../lib/appareil'
 import { downscaleDataUrl } from '../../lib/image'
 import { visuelsPourRendu } from '../../lib/look'
 import { partagerOuTelecharger, preparerFichierJpg } from '../../lib/partage'
@@ -29,8 +30,11 @@ const EXEMPLE_IMAGE = '/exemples/mannequin.svg'
 /**
  * Essayage du look sur la photo du visiteur.
  *
- * Le parcours tient en deux temps : la photo (importée ou prise à la webcam) et
- * les pièces retenues, puis le rendu. Tout s'appuie sur l'existant — la même
+ * Le parcours tient en deux temps : la photo et les pièces retenues, puis le
+ * rendu. La prise de vue directe n'est proposée que sur mobile — c'est là qu'on
+ * se photographie en pied, appareil en main ; sur ordinateur, la webcam filme un
+ * buste assis, cadrage dont l'essayage ne tire rien. On s'en tient donc à
+ * l'import. Pour le reste, tout s'appuie sur l'existant — la même
  * réduction d'image (`downscaleDataUrl`), le même endpoint (`rendre` →
  * /api/render), et le même repli qu'ailleurs : si le rendu n'aboutit pas, la
  * planche « flat lay » du look s'affiche. Personne ne repart sur une erreur.
@@ -50,6 +54,13 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
   const [image, setImage] = useState<string | null>(null)
   const [planche, setPlanche] = useState<string | null>(null)
   const [fichierJpg, setFichierJpg] = useState<File | null>(null)
+
+  // La prise de vue est réservée au mobile. On dérive l'onglet plutôt que de le
+  // corriger dans un effet : même si `onglet` reste sur 'camera' (souris
+  // branchée en cours de route), la caméra ne peut plus s'allumer sur
+  // ordinateur — il n'y a pas d'état transitoire à rattraper.
+  const surMobile = useSurMobile()
+  const ongletActif: Onglet = surMobile ? onglet : 'import'
 
   const principal = look[0]
   const pieces = useMemo(
@@ -83,7 +94,7 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
   // retenue, à la fermeture et au démontage : le voyant de la webcam doit
   // s'éteindre en même temps que l'aperçu disparaît.
   useEffect(() => {
-    if (phase !== 'photo' || onglet !== 'camera' || photo) {
+    if (phase !== 'photo' || ongletActif !== 'camera' || photo) {
       arreterCamera()
       return
     }
@@ -124,7 +135,7 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
       annule = true
       arreterCamera()
     }
-  }, [phase, onglet, photo, arreterCamera])
+  }, [phase, ongletActif, photo, arreterCamera])
 
   useEffect(() => arreterCamera, [arreterCamera])
 
@@ -303,25 +314,34 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
             <div>
               {phase === 'photo' ? (
                 <>
-                  <div className="flex gap-6 border-b border-gris-bordure">
-                    <button
-                      type="button"
-                      onClick={() => setOnglet('import')}
-                      className={ongletCls(onglet === 'import')}
-                    >
+                  {/* Sur ordinateur, un seul chemin : pas d'onglets à arbitrer,
+                      juste le titre de la colonne — accordé à celui des pièces,
+                      en face. */}
+                  {surMobile ? (
+                    <div className="flex gap-6 border-b border-gris-bordure">
+                      <button
+                        type="button"
+                        onClick={() => setOnglet('import')}
+                        className={ongletCls(ongletActif === 'import')}
+                      >
+                        Importer une photo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setErreurCamera(null)
+                          setOnglet('camera')
+                        }}
+                        className={ongletCls(ongletActif === 'camera')}
+                      >
+                        Prendre une photo
+                      </button>
+                    </div>
+                  ) : (
+                    <h3 className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-gris-texte">
                       Importer une photo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setErreurCamera(null)
-                        setOnglet('camera')
-                      }}
-                      className={ongletCls(onglet === 'camera')}
-                    >
-                      Prendre une photo
-                    </button>
-                  </div>
+                    </h3>
+                  )}
 
                   <p className="mt-4 font-sans text-[13px] font-light leading-relaxed text-gris-texte">
                     De face, en pied ou à mi-corps, sur un fond dégagé : c’est ce qui donne le
@@ -345,7 +365,7 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
                           Changer la photo
                         </button>
                       </div>
-                    ) : onglet === 'camera' ? (
+                    ) : ongletActif === 'camera' ? (
                       <div className="overflow-hidden border border-gris-bordure bg-noir-encre">
                         <video
                           ref={videoRef}

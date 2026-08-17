@@ -7,6 +7,7 @@
 // D'où deux fonctions distinctes : on PRÉPARE le fichier dès que le visuel
 // existe, et on PARTAGE au clic, sans rien attendre entre-temps.
 
+import { surMobile } from './appareil'
 import { versJpegBlob } from './image'
 
 /** Encode le visuel en fichier JPG, prêt pour un partage natif instantané. */
@@ -38,10 +39,7 @@ export async function partagerOuTelecharger(
     share?: (data: { files?: File[]; title?: string }) => Promise<void>
     canShare?: (data: { files?: File[] }) => boolean
   }
-  const surMobile =
-    typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches === true
-
-  if (surMobile && fichierJpg && nav.share && nav.canShare?.({ files: [fichierJpg] })) {
+  if (surMobile() && fichierJpg && nav.share && nav.canShare?.({ files: [fichierJpg] })) {
     try {
       await nav.share({ files: [fichierJpg], title: titre })
       return
