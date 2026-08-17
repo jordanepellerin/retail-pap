@@ -76,6 +76,7 @@ export default function FicheProduit() {
   const [essayageOuvert, setEssayageOuvert] = useState(false)
   const [taille, setTaille] = useState<string | null>(null)
   const [noticePanier, setNoticePanier] = useState(false)
+  const [ecartees, setEcartees] = useState<Set<string>>(() => new Set())
 
   // Changer d'article remet la fiche à zéro — sinon la taille d'un costume
   // resterait sélectionnée sur une paire de chaussures.
@@ -85,6 +86,7 @@ export default function FicheProduit() {
     setEssayageOuvert(false)
     setTaille(null)
     setNoticePanier(false)
+    setEcartees(new Set())
   }, [id])
 
   // Échap ferme la couche du dessus, une seule à la fois : d'abord l'essayage,
@@ -104,7 +106,14 @@ export default function FicheProduit() {
     return () => window.removeEventListener('keydown', onKey)
   }, [lookOuvert, essayageOuvert])
 
-  const look = useMemo(() => (article ? composerLook(article) : []), [article])
+  // Le look composé par le catalogue, puis celui du visiteur : il écarte ce
+  // qu'il ne veut ni acheter ni essayer, et ce choix vaut pour les deux couches
+  // — le tiroir d'achat comme l'essayage travaillent sur la même liste.
+  const lookComplet = useMemo(() => (article ? composerLook(article) : []), [article])
+  const look = useMemo(
+    () => lookComplet.filter((a) => !ecartees.has(a.id)),
+    [lookComplet, ecartees]
+  )
 
   if (!article) return <ArticleIntrouvable />
 
@@ -113,7 +122,10 @@ export default function FicheProduit() {
   const coloris = declinaisons(article)
   const prixRemise = remise ? Math.round((article.prix * (100 - remise)) / 100) : null
   // Un look d'une seule pièce n'a rien à montrer : le bouton ne s'affiche pas.
-  const looksProposes = look.length > 1
+  // On se fonde sur le look COMPOSÉ, pas sur celui qui reste : sinon le visiteur
+  // qui écarte tout sauf une pièce verrait l'entrée disparaître, sans plus aucun
+  // moyen de rouvrir le tiroir pour rétablir son look.
+  const looksProposes = lookComplet.length > 1
 
   return (
     <>
@@ -270,7 +282,8 @@ export default function FicheProduit() {
                 onClick={() => setLookOuvert(true)}
                 className="btn-outline-dark mt-3 w-full py-4"
               >
-                Voir le look complet ({look.length} pièces · {formatPrix(totalTenue(look))})
+                Voir le look complet ({look.length} pièce{look.length > 1 ? 's' : ''} ·{' '}
+                {formatPrix(totalTenue(look))})
               </button>
             )}
 
@@ -296,6 +309,10 @@ export default function FicheProduit() {
       {lookOuvert && (
         <PanneauLook
           look={look}
+          idRegarde={article.id}
+          nbComplet={lookComplet.length}
+          onEcarter={(idPiece) => setEcartees((precedent) => new Set(precedent).add(idPiece))}
+          onRetablir={() => setEcartees(new Set())}
           onFermer={() => setLookOuvert(false)}
           onEssayer={() => setEssayageOuvert(true)}
         />

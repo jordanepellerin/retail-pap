@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Article } from '../../types'
 import { formatPrix, sousTitreArticle } from '../../data/catalogue'
@@ -7,8 +7,14 @@ import { CloseIcon } from '../icons'
 import VisuelProduit from '../VisuelProduit'
 
 interface PanneauLookProps {
-  /** Le look complet, pièce principale en tête (cf. `composerLook`). */
+  /** Le look, pièce principale en tête (cf. `composerLook`), moins les écartées. */
   look: Article[]
+  /** L'article de la fiche — c'est lui qui a composé le look. */
+  idRegarde: string
+  /** Taille du look composé, avant écartement : de quoi proposer de le rétablir. */
+  nbComplet: number
+  onEcarter: (id: string) => void
+  onRetablir: () => void
   onFermer: () => void
   onEssayer: () => void
 }
@@ -19,9 +25,27 @@ interface PanneauLookProps {
  *
  * Il s'ouvre en superposition à droite (voile + panneau), comme le tiroir de
  * navigation (`Nav.tsx`) : le grand visuel reste visible derrière, assombri.
+ *
+ * Le look proposé n'est pas imposé : chaque pièce peut être écartée, et le
+ * retrait passe par une confirmation nommant la pièce — c'est le total, l'achat
+ * ET l'essayage qu'il modifie d'un seul geste. Rien n'est perdu pour autant, le
+ * look complet se rétablit d'un clic.
  */
-export default function PanneauLook({ look, onFermer, onEssayer }: PanneauLookProps) {
+export default function PanneauLook({
+  look,
+  idRegarde,
+  nbComplet,
+  onEcarter,
+  onRetablir,
+  onFermer,
+  onEssayer
+}: PanneauLookProps) {
   const panneauRef = useRef<HTMLDivElement>(null)
+  const confirmerRef = useRef<HTMLButtonElement>(null)
+  /** Pièce dont le retrait attend confirmation — une seule à la fois. */
+  const [aConfirmer, setAConfirmer] = useState<string | null>(null)
+  /** Où rendre le focus si la confirmation est annulée. */
+  const retourFocus = useRef<string | null>(null)
   const total = totalTenue(look)
   const alertes = alertesTenue(look)
 
@@ -30,6 +54,32 @@ export default function PanneauLook({ look, onFermer, onEssayer }: PanneauLookPr
   useEffect(() => {
     panneauRef.current?.querySelector<HTMLElement>('button')?.focus()
   }, [])
+
+  // La confirmation prend la PLACE du bouton « Retirer » : sans rien faire, le
+  // focus clavier retomberait sur le corps du document à chaque aller-retour.
+  // On le pose donc sur la confirmation, et on le rend au bouton d'origine si
+  // le visiteur renonce.
+  useEffect(() => {
+    if (aConfirmer) {
+      confirmerRef.current?.focus()
+      return
+    }
+    const id = retourFocus.current
+    retourFocus.current = null
+    if (id) panneauRef.current?.querySelector<HTMLElement>(`[data-retirer="${id}"]`)?.focus()
+  }, [aConfirmer])
+
+  const demanderRetrait = (id: string) => {
+    retourFocus.current = id
+    setAConfirmer(id)
+  }
+
+  const confirmerRetrait = (id: string) => {
+    // La ligne disparaît : plus de bouton auquel rendre le focus.
+    retourFocus.current = null
+    setAConfirmer(null)
+    onEcarter(id)
+  }
 
   return (
     <>
@@ -60,7 +110,7 @@ export default function PanneauLook({ look, onFermer, onEssayer }: PanneauLookPr
 
         <div className="widget-scroll flex-1 overflow-y-auto px-6 py-6">
           <ul className="space-y-5">
-            {look.map((article, i) => (
+            {look.map((article) => (
               <li key={article.id} className="flex gap-4">
                 <Link
                   to={`/produit/${article.id}`}
@@ -93,19 +143,75 @@ export default function PanneauLook({ look, onFermer, onEssayer }: PanneauLookPr
                   <p className="mt-1 font-sans text-[13px] text-noir-encre">
                     {formatPrix(article.prix)}
                   </p>
-                  {/* La pièce regardée est rappelée : c'est elle qui a composé le look. */}
-                  {i === 0 && (
+                  {/* La pièce regardée est rappelée : c'est elle qui a composé le
+                      look. Repérée par son id et non par sa position — elle peut
+                      être écartée comme une autre, et la tête de liste revient
+                      alors à une pièce qui, elle, n'est pas « regardée ». */}
+                  {article.id === idRegarde && (
                     <p className="mt-1 font-sans text-[10px] font-medium uppercase tracking-[0.16em] text-sable">
                       La pièce que vous regardez
                     </p>
                   )}
-                  <button type="button" className="chip-boutique mt-2 self-start px-4 py-2 text-[12px]">
-                    Choisir la taille
-                  </button>
+
+                  {aConfirmer === article.id ? (
+                    <div className="mt-2 border-l-2 border-sable bg-sable/[0.08] px-3 py-2.5">
+                      <p className="font-sans text-[12px] font-light leading-relaxed text-noir-encre">
+                        Retirer « {article.nom} » du look ?
+                      </p>
+                      <div className="mt-2.5 flex gap-2">
+                        <button
+                          ref={confirmerRef}
+                          type="button"
+                          onClick={() => confirmerRetrait(article.id)}
+                          className="border border-noir-encre bg-noir-encre px-3.5 py-2 font-sans text-[11px] font-medium uppercase tracking-[0.12em] text-white transition-opacity hover:opacity-80"
+                        >
+                          Retirer
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAConfirmer(null)}
+                          className="border border-gris-bordure px-3.5 py-2 font-sans text-[11px] font-medium uppercase tracking-[0.12em] text-noir-encre transition-colors hover:border-noir-encre"
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+                      <button type="button" className="chip-boutique px-4 py-2 text-[12px]">
+                        Choisir la taille
+                      </button>
+                      {/* Une pièce au moins : un look vide n'a plus rien à acheter
+                          ni à essayer. */}
+                      {look.length > 1 && (
+                        <button
+                          type="button"
+                          data-retirer={article.id}
+                          onClick={() => demanderRetrait(article.id)}
+                          aria-label={`Retirer ${article.couleur} ${article.nom} du look`}
+                          className="font-sans text-[12px] font-light text-gris-texte underline-offset-4 transition-colors hover:text-noir-encre hover:underline"
+                        >
+                          Retirer
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </li>
             ))}
           </ul>
+
+          {/* Le retrait est confirmé, jamais définitif : le look composé reste à
+              un clic. */}
+          {look.length < nbComplet && (
+            <button
+              type="button"
+              onClick={onRetablir}
+              className="mt-6 w-full text-center font-sans text-[12px] font-light text-gris-texte underline-offset-4 transition-colors hover:text-noir-encre hover:underline"
+            >
+              Rétablir le look complet ({nbComplet} pièces) →
+            </button>
+          )}
 
           {alertes.length > 0 && (
             <ul className="mt-6 space-y-1.5 border-l-2 border-sable bg-sable/[0.08] px-3 py-2.5">
