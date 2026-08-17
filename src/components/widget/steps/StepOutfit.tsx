@@ -11,7 +11,7 @@ import {
   LigneArticle
 } from '../ui'
 import { formatPrix } from '../../../data/catalogue'
-import { alertesTenue, resumeSlots, totalTenue } from '../../../lib/tenue'
+import { resumeSlots, totalTenue } from '../../../lib/tenue'
 
 interface StepOutfitProps {
   state: WidgetState
@@ -28,7 +28,6 @@ export default function StepOutfit({ state, dispatch }: StepOutfitProps) {
   const [confirmation, setConfirmation] = useState(false)
   const tenue = state.tenue
   const nb = tenue.length
-  const alertes = alertesTenue(tenue)
   const cibles = resumeSlots(tenue)
 
   return (
@@ -73,20 +72,6 @@ export default function StepOutfit({ state, dispatch }: StepOutfitProps) {
           </span>
           <span className="font-serif text-[19px] text-white">{formatPrix(totalTenue(tenue))}</span>
         </div>
-      )}
-
-      {/* Avertissements doux : ils informent, ils ne bloquent jamais. */}
-      {alertes.length > 0 && (
-        <ul className="mt-4 space-y-1.5">
-          {alertes.map((a) => (
-            <li
-              key={a}
-              className="border-l-2 border-sable/60 pl-3 font-sans text-[12px] font-light leading-relaxed text-white/70"
-            >
-              {a}
-            </li>
-          ))}
-        </ul>
       )}
 
       <div className="mt-auto space-y-3 pt-7">

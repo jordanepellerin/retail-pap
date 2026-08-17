@@ -3,8 +3,9 @@ import type { Article, Categorie, WidgetState } from '../../../types'
 import type { MatchResult } from '../../../types/ai'
 import type { WidgetDispatch } from '../state'
 import { Prompt, Subtext, StepEyebrow, PrimaryButton, SecondaryButton, VignetteArticle } from '../ui'
-import { LIBELLES_CATEGORIE, formatPrix } from '../../../data/catalogue'
+import { LIBELLES_CATEGORIE, ORDRE_CATEGORIES, formatPrix } from '../../../data/catalogue'
 import VisuelProduit from '../../VisuelProduit'
+import ModaleFamilles from '../ModaleFamilles'
 import { intentionCourante } from '../../../lib/intent'
 import { briefCode, criteres } from '../../../lib/brief'
 import {
@@ -178,8 +179,10 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
   const phase = state.phase
   const [visible, setVisible] = useState(PAR_PAGE)
   const [dernierAjout, setDernierAjout] = useState<Article | null>(null)
+  const [famillesAjoutees, setFamillesAjoutees] = useState<Categorie[]>([])
+  const [choixOuvert, setChoixOuvert] = useState(false)
 
-  const familles = useMemo(
+  const famillesBase = useMemo(
     () =>
       phase === 'demande'
         ? categoriesDemandees(intention)
@@ -188,6 +191,13 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
     // visiteur : on ne recalcule qu'au changement de phase.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [phase]
+  )
+
+  // Les familles demandées explicitement viennent après les suggestions, dans
+  // l'ordre où le visiteur les a choisies.
+  const familles = useMemo(
+    () => [...famillesBase, ...famillesAjoutees.filter((c) => !famillesBase.includes(c))],
+    [famillesBase, famillesAjoutees]
   )
 
   const parFamille = useMemo(() => {
@@ -230,6 +240,36 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
   const passerAuxComplements = () => {
     setVisible(PAR_PAGE)
     dispatch({ type: 'SET_PHASE', value: 'complements' })
+  }
+
+  /**
+   * Familles encore proposables : toutes CELLES QUE LE VISITEUR NE PORTE PAS
+   * déjà — une chemise retenue retire « Chemises » de la liste. Les familles
+   * déjà à l'écran y restent volontairement : au-delà du plafond d'affichage,
+   * c'est par là qu'on les fait apparaître, et les redemander est sans effet
+   * de bord. Une famille sans pièce disponible n'est pas proposée.
+   */
+  const famillesProposables = useMemo(() => {
+    const portees = new Set(state.tenue.map((a) => a.categorie))
+    const sansBudget = { ...intention, budgetMax: null }
+    return ORDRE_CATEGORIES.filter((c) => !portees.has(c))
+      .map((categorie) => ({
+        categorie,
+        disponibles: classerArticles(sansBudget, [categorie]).length
+      }))
+      .filter((f) => f.disponibles > 0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.tenue])
+
+  const ajouterFamilles = (choisies: Categorie[]) => {
+    setFamillesAjoutees((precedent) => [
+      ...precedent,
+      ...choisies.filter((c) => !precedent.includes(c))
+    ])
+    // Sans cela, les familles ajoutées tomberaient sous le plafond d'affichage
+    // et le visiteur ne verrait rien se passer.
+    setVisible((v) => v + choisies.length)
+    setChoixOuvert(false)
   }
 
   // Retour à la demande, texte conservé pour être retouché. Le classement et la
@@ -279,10 +319,26 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
       ) : (
         <>
           <StepEyebrow>Complétez la tenue</StepEyebrow>
-          <Prompt>Avec quoi la porter&nbsp;?</Prompt>
+          <Prompt>Souhaitez-vous compléter votre tenue&nbsp;?</Prompt>
           <Subtext>
             Ces pièces s’accordent à ce que vous venez de choisir. Rien n’est obligatoire.
           </Subtext>
+
+          {famillesProposables.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setChoixOuvert(true)}
+              className="mt-4 flex items-center gap-3 self-start border border-white/25 py-2 pl-2 pr-4 transition-all duration-200 hover:border-sable hover:bg-sable/10"
+            >
+              <span
+                aria-hidden="true"
+                className="flex h-8 w-8 items-center justify-center border border-sable/50 text-[18px] leading-none text-sable"
+              >
+                +
+              </span>
+              <span className="font-sans text-[13px] text-white">Ajouter une famille</span>
+            </button>
+          )}
         </>
       )}
 
@@ -380,6 +436,14 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
           </p>
         </div>
       </div>
+
+      {choixOuvert && (
+        <ModaleFamilles
+          familles={famillesProposables}
+          onAjouter={ajouterFamilles}
+          onFermer={() => setChoixOuvert(false)}
+        />
+      )}
     </div>
   )
 }
