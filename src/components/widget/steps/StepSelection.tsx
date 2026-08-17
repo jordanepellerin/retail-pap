@@ -351,7 +351,7 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
               onClick={() => setChoixOuvert(true)}
               aria-label="Ajouter une famille"
               title="Ajouter une famille"
-              className="flex shrink-0 items-center justify-center bg-sable text-[22px] leading-none text-noir-encre transition-colors duration-200 hover:bg-white"
+              className="flex shrink-0 items-center justify-center border border-sable/50 text-[22px] leading-none text-sable transition-colors duration-200 hover:border-sable hover:bg-sable/10"
               style={{ width: COTE_VIGNETTE, height: COTE_VIGNETTE * 1.25 }}
             >
               <span aria-hidden="true">+</span>
@@ -382,9 +382,8 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
         {affichees.length === 0 &&
           (phase === 'complements' ? (
             <p className="border border-dashed border-white/15 px-4 py-6 text-center font-sans text-[13px] font-light leading-relaxed text-gris-texte">
-              Aucune famille ouverte pour l’instant. Utilisez «&nbsp;Ajouter une famille&nbsp;»
-              ci-dessus pour choisir ce que vous voulez voir — ou continuez avec votre tenue telle
-              quelle.
+              Aucune famille ouverte pour l’instant. Touchez le «&nbsp;+&nbsp;» ci-dessus pour
+              choisir ce que vous voulez voir — ou continuez avec votre tenue telle quelle.
             </p>
           ) : (
             <p className="font-sans text-[13px] font-light leading-relaxed text-gris-texte">
