@@ -6,6 +6,7 @@ import { Prompt, Subtext, StepEyebrow, PrimaryButton, SecondaryButton, VignetteA
 import { LIBELLES_CATEGORIE, formatPrix } from '../../../data/catalogue'
 import VisuelProduit from '../../VisuelProduit'
 import { intentionCourante } from '../../../lib/intent'
+import { briefCode, criteres } from '../../../lib/brief'
 import {
   categoriesComplementaires,
   categoriesDemandees,
@@ -231,12 +232,45 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
     dispatch({ type: 'SET_PHASE', value: 'complements' })
   }
 
+  // Retour à la demande, texte conservé pour être retouché. Le classement et la
+  // reformulation sont invalidés par le prochain SET_DEMANDE : relancer produit
+  // bien un cycle neuf, pas un affichage périmé.
+  const modifierLaDemande = () => {
+    setVisible(PAR_PAGE)
+    dispatch({ type: 'SET_PHASE', value: 'demande' })
+    dispatch({ type: 'GOTO', step: 'request' })
+  }
+
+  // Reformulation IA quand elle a abouti, repli 100 % code sinon : cette ligne
+  // ne doit jamais être vide, c'est elle qui porte la confiance du parcours.
+  const repli = briefCode(intention, state.demande)
+  const reformulation = state.brief.result?.reformulation?.trim() || repli.reformulation
+  const criteresLus = criteres(intention)
+
   return (
     <div className="flex min-h-full flex-col px-5 pb-7 pt-5">
       {phase === 'demande' ? (
         <>
           <StepEyebrow>Votre demande</StepEyebrow>
           <Prompt>Voici ce que je vous propose</Prompt>
+          {/* La reformulation tenait un écran à elle seule ; elle tient
+              maintenant en tête des résultats — le visiteur vérifie qu'on l'a
+              compris sans qu'un clic de plus le sépare de sa sélection. */}
+          <p className="anim-bubble mt-3 border-l-2 border-sable/60 pl-3 font-sans text-[13px] font-light leading-relaxed text-white/80">
+            {reformulation}
+          </p>
+          {criteresLus.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {criteresLus.map((c) => (
+                <span
+                  key={`${c.champ}-${c.valeur}`}
+                  className="border border-sable/40 bg-sable/[0.08] px-2.5 py-1 font-sans text-[11px] text-white/90"
+                >
+                  {c.label}
+                </span>
+              ))}
+            </div>
+          )}
           <Subtext>
             Faites glisser pour parcourir, touchez une pièce pour la retenir. Vous ne pouvez garder
             qu’une pièce par emplacement — la nouvelle remplace l’ancienne.
@@ -326,10 +360,25 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
               {nb > 0 ? `Voir ma tenue (${nb})` : 'Continuer'}
             </PrimaryButton>
             <SecondaryButton onClick={() => dispatch({ type: 'SET_PHASE', value: 'demande' })}>
-              ← Revenir à ma demande
+              ← Revenir aux pièces demandées
             </SecondaryButton>
           </>
         )}
+
+        {/* Sortie de secours du parcours : rien ne convient, on repart de la
+            demande elle-même plutôt que d'insister sur cette sélection. */}
+        <div className="border-t border-white/10 pt-4">
+          <button
+            type="button"
+            onClick={modifierLaDemande}
+            className="w-full text-center font-sans text-[12px] font-medium uppercase tracking-[0.14em] text-gris-texte transition-colors hover:text-white"
+          >
+            ↺ Modifier ma demande
+          </button>
+          <p className="mt-1.5 text-center font-sans text-[11px] font-light text-gris-texte">
+            Vous retrouverez votre texte, à retoucher avant de relancer.
+          </p>
+        </div>
       </div>
     </div>
   )

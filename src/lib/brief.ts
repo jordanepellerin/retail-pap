@@ -56,21 +56,6 @@ export function criteres(intention: Intention): Critere[] {
   return liste
 }
 
-/** Retire un critère de l'intention (bouton × sur une puce du brief). */
-export function retirerCritere(intention: Intention, critere: Critere): Intention {
-  switch (critere.champ) {
-    case 'budgetMax':
-      return { ...intention, budgetMax: null }
-    case 'coupe':
-      return { ...intention, coupe: null }
-    default:
-      return {
-        ...intention,
-        [critere.champ]: intention[critere.champ].filter((v) => v !== critere.valeur)
-      }
-  }
-}
-
 /**
  * Reformulation de repli, écrite en code. Volontairement sobre : mieux vaut une
  * phrase juste et un peu plate qu'une phrase brillante et fausse.

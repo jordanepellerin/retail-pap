@@ -1,19 +1,12 @@
 import type { Dispatch } from 'react'
-import type {
-  Article,
-  Intention,
-  PhaseSelection,
-  PhotoMeta,
-  Step,
-  WidgetState
-} from '../../types'
+import type { Article, PhaseSelection, PhotoMeta, Step, WidgetState } from '../../types'
 import type { AnalyseResult, BriefResult, MatchResult } from '../../types/ai'
 import { basculerArticle, retirerArticle } from '../../lib/tenue'
 
 export const initialWidgetState: WidgetState = {
-  step: 'welcome',
+  // Le widget ouvre directement sur la demande : c'est la seule étape de saisie.
+  step: 'request',
   demande: '',
-  reponses: {},
   photo: null,
   photoMeta: null,
   analyse: null,
@@ -31,9 +24,6 @@ export const initialWidgetState: WidgetState = {
 export type WidgetAction =
   | { type: 'GOTO'; step: Step }
   | { type: 'SET_DEMANDE'; value: string }
-  | { type: 'REPONDRE'; questionId: string; valeurs: string[] }
-  | { type: 'ANNULER_REPONSE'; questionId: string }
-  | { type: 'RESET_QUALIFICATION' }
   | { type: 'SET_PHOTO'; value: { dataUrl: string; meta: PhotoMeta } | null }
   | { type: 'SKIP_PHOTO' }
   | { type: 'ANALYSE_START' }
@@ -44,7 +34,6 @@ export type WidgetAction =
   | { type: 'BRIEF_START' }
   | { type: 'BRIEF_DONE'; value: BriefResult }
   | { type: 'BRIEF_ERROR' }
-  | { type: 'AFFINER_INTENTION'; value: Intention }
   | { type: 'SET_PHASE'; value: PhaseSelection }
   | { type: 'TOGGLE_ARTICLE'; value: Article }
   | { type: 'RETIRER_ARTICLE'; id: string }
@@ -68,9 +57,10 @@ export function cleRendu(state: WidgetState): string {
 }
 
 /**
- * Changer la demande ou une réponse invalide tout l'aval : analyse, classement,
- * reformulation. La tenue est conservée — le visiteur a fait ces choix
- * lui-même, ce n'est pas au widget de les défaire.
+ * Changer la demande invalide tout l'aval : analyse, classement, reformulation.
+ * C'est ce qui fait qu'un retour à `request` relance un cycle complet. La tenue
+ * est conservée — le visiteur a fait ces choix lui-même, ce n'est pas au widget
+ * de les défaire.
  */
 const invalidation: Pick<WidgetState, 'analyse' | 'analyseStatus' | 'matches' | 'brief'> = {
   analyse: null,
@@ -95,19 +85,6 @@ export function widgetReducer(state: WidgetState, action: WidgetAction): WidgetS
       return { ...state, step: action.step }
     case 'SET_DEMANDE':
       return { ...state, demande: action.value, ...invalidation }
-    case 'REPONDRE':
-      return {
-        ...state,
-        reponses: { ...state.reponses, [action.questionId]: action.valeurs },
-        ...invalidation
-      }
-    case 'ANNULER_REPONSE': {
-      const reponses = { ...state.reponses }
-      delete reponses[action.questionId]
-      return { ...state, reponses, ...invalidation }
-    }
-    case 'RESET_QUALIFICATION':
-      return { ...state, reponses: {}, ...invalidation }
     case 'SET_PHOTO':
       return {
         ...state,
@@ -136,15 +113,6 @@ export function widgetReducer(state: WidgetState, action: WidgetAction): WidgetS
       return { ...state, brief: { status: 'done', result: action.value } }
     case 'BRIEF_ERROR':
       return { ...state, brief: { status: 'error', result: null } }
-    case 'AFFINER_INTENTION':
-      // Retrait d'un critère depuis l'écran de brief : on réécrit l'intention
-      // côté analyse et on relance le classement (matches remis à null).
-      return {
-        ...state,
-        analyse: { intent: action.value, confiance: state.analyse?.confiance ?? 1 },
-        analyseStatus: 'done',
-        matches: null
-      }
     case 'SET_PHASE':
       return { ...state, phase: action.value }
     case 'TOGGLE_ARTICLE': {
@@ -190,15 +158,13 @@ export interface StepProps {
 }
 
 /**
- * Étape précédente pour le bouton « Retour ». `brief → qualify` saute
- * volontairement `matching` (transitoire, auto-animé) ; `brief` se redérive de
- * `state.matches`, conservé. Pas de retour depuis `welcome`, `matching` ni `done`.
+ * Étape précédente pour le bouton « Retour ». `selection → request` saute
+ * volontairement `matching` (transitoire, auto-animé) : y revenir relancerait le
+ * pipeline en boucle. Pas de retour depuis `request` (c'est le début), ni depuis
+ * `matching` ni `done`.
  */
 export const previousStep: Partial<Record<Step, Step>> = {
-  request: 'welcome',
-  qualify: 'request',
-  brief: 'qualify',
-  selection: 'brief',
+  selection: 'request',
   photo: 'selection',
   outfit: 'photo',
   render: 'outfit',

@@ -53,49 +53,46 @@ npx vercel dev               # http://localhost:3000
 
 ## Le widget — parcours
 
-Machine d'état `Step`, onze étapes :
+Machine d'état `Step`, huit étapes — **une seule saisie avant les résultats** :
 
 ```
-welcome → request → qualify → matching → brief → selection → photo → outfit → render → lead → done
-                                  ↑ transitoire            ↑ deux temps internes
+request → matching → selection → photo → outfit → render → lead → done
+             ↑ transitoire     ↑ deux temps internes
+   ↖───────────────────────────┘  « Modifier ma demande » relance un cycle
 ```
 
-1. **`request` — la demande.** Champ libre (« un costume en lin pour un mariage
-   en juin ») + six amorces cliquables. Chaque amorce est rédigée pour être lue
-   par le détecteur d'intention : un clic répond déjà à deux ou trois questions.
+1. **`request` — la demande.** Seule étape de saisie, et écran d'ouverture du
+   widget. Champ libre (« un costume en lin pour un mariage en juin ») + six
+   amorces cliquables. Chaque amorce est rédigée pour être lue par le détecteur
+   d'intention, et **remplit le champ au lieu de valider** : le visiteur part
+   d'une phrase déjà écrite, la retouche, ou en essaie une autre — un nouveau
+   clic remplace intégralement le contenu. Rien n'avance sans un geste explicite.
 
-2. **`qualify` — la qualification.** Deux à quatre questions en puces
-   (occasion, matière, palette, budget, coupe), avec le fil des échanges
-   au-dessus et chaque réponse modifiable d'un clic. **Une question dont la
-   réponse figure déjà dans la demande libre n'est pas posée** — c'est le rôle
-   de la pré-passe 100 % code `src/lib/intent.ts` (sans accents, tolérante aux
-   fautes). « Un costume en lin pour un mariage » ne déclenche que 3 questions
-   au lieu de 5.
-
-3. **`matching` — le pipeline.** Intention code → analyse IA *seulement si elle
+2. **`matching` — le pipeline.** Intention code → analyse IA *seulement si elle
    apporte quelque chose* (`besoinAnalyseIA`) → classement du catalogue
    (`src/lib/matching.ts`, 0 appel réseau) → reformulation IA.
 
-4. **`brief` — la validation.** Le widget reformule le besoin en une phrase et
-   ajoute un conseil ; chaque critère retenu est une puce **retirable d'un
-   geste**, plus rapide que de refaire tout le questionnaire. Repli 100 % code
-   (`src/lib/brief.ts`) si l'IA est indisponible.
-
-5. **`selection` — les pièces, en deux temps.** *Temps A* : uniquement les
-   familles demandées, en carrousels, avec des badges « pourquoi » issus du
-   scoring (« Lin, comme souhaité », « Pour un mariage (invité) »). *Temps B* :
+3. **`selection` — les pièces, en deux temps.** La reformulation ouvre l'écran
+   (repli 100 % code `src/lib/brief.ts` si l'IA est indisponible), suivie des
+   critères retenus en puces : le visiteur vérifie qu'on l'a compris sans qu'un
+   clic de plus le sépare de sa sélection. *Temps A* : uniquement les familles
+   demandées, en carrousels, avec des badges « pourquoi » issus du scoring
+   (« Lin, comme souhaité », « Pour un mariage (invité) »). *Temps B* :
    « Complétez la tenue » propose les familles complémentaires, réordonnées par
-   les accords des pièces déjà retenues.
+   les accords des pièces déjà retenues. **En bas d'écran, « Modifier ma
+   demande »** ramène à `request` avec le texte conservé — changer la demande
+   invalide analyse, classement et reformulation, donc relancer produit un cycle
+   neuf, jamais un affichage périmé.
 
-6. **`photo` — l'essayage.** Photo de soi (réduite ≤ 1280 px et ré-encodée en
+4. **`photo` — l'essayage.** Photo de soi (réduite ≤ 1280 px et ré-encodée en
    JPEG côté client), ou silhouette d'exemple, ou aucune photo.
 
-7. **`outfit` — le récapitulatif.** La tenue pièce par pièce, le total, les
+5. **`outfit` — le récapitulatif.** La tenue pièce par pièce, le total, les
    avertissements doux, et ce que le rendu va remplacer sur la photo. Le bouton
    « Voir le résultat » est actif dès **une** pièce retenue, et une
    **confirmation explicite** précède la génération.
 
-8. **`render` — le résultat.** Essayage généré, ou planche « flat lay » de la
+6. **`render` — le résultat.** Essayage généré, ou planche « flat lay » de la
    tenue (sans photo, ou en secours). Téléchargement et partage natif mobile.
 
 ### Garde-fous de composition — `src/lib/tenue.ts`
@@ -245,13 +242,15 @@ api/
 src/
 ├── components/
 │   ├── Nav, CategoryHero, ProductGrid, Services, Footer, Logo, icons
+│   ├── look/              # PanneauLook (« Acheter le look »), ModaleEssayage
 │   └── widget/
 │       ├── Widget, WidgetLauncher, WidgetPanel, state, ui
-│       └── steps/  (StepWelcome … StepDone)
+│       └── steps/  (StepRequest … StepDone)
 ├── data/
-│   ├── catalogue.ts       # 37 articles mockés (matières, occasions, accords)
-│   └── questions.ts       # banque de questions de qualification
-├── lib/                   # intent, matching, tenue, brief, planche, image, aiClient
+│   └── catalogue.ts       # 37 articles mockés (matières, occasions, accords)
+├── lib/                   # intent, matching, tenue, brief, look, planche, image,
+│                          # partage, aiClient
+├── pages/                 # FicheProduit (/produit/:id), AdminPrompts (/admin)
 ├── types/                 # index.ts (domaine), ai.ts (contrats), admin.ts
 ├── App.tsx, main.tsx, index.css
 scripts/generer-visuels.mjs # génère public/produits/*.svg

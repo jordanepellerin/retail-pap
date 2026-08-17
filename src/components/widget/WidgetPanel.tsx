@@ -4,11 +4,8 @@ import type { WidgetDispatch } from './state'
 import { previousStep } from './state'
 import { Avatar } from './ui'
 import { MinimizeIcon, ExpandIcon, ReduceIcon, HangerIcon } from '../icons'
-import StepWelcome from './steps/StepWelcome'
 import StepRequest from './steps/StepRequest'
-import StepQualify from './steps/StepQualify'
 import StepMatching from './steps/StepMatching'
-import StepBrief from './steps/StepBrief'
 import StepSelection from './steps/StepSelection'
 import StepPhoto from './steps/StepPhoto'
 import StepOutfit from './steps/StepOutfit'
@@ -21,16 +18,9 @@ interface WidgetPanelProps {
   dispatch: WidgetDispatch
   onClose: () => void
   onRestart: () => void
-  onBrowse: () => void
 }
 
-export default function WidgetPanel({
-  state,
-  dispatch,
-  onClose,
-  onRestart,
-  onBrowse
-}: WidgetPanelProps) {
+export default function WidgetPanel({ state, dispatch, onClose, onRestart }: WidgetPanelProps) {
   const bodyRef = useRef<HTMLDivElement>(null)
   const [expanded, setExpanded] = useState(false)
 
@@ -49,16 +39,10 @@ export default function WidgetPanel({
 
   function renderStep() {
     switch (state.step) {
-      case 'welcome':
-        return <StepWelcome dispatch={dispatch} onBrowse={onBrowse} />
       case 'request':
         return <StepRequest state={state} dispatch={dispatch} />
-      case 'qualify':
-        return <StepQualify state={state} dispatch={dispatch} />
       case 'matching':
         return <StepMatching state={state} dispatch={dispatch} />
-      case 'brief':
-        return <StepBrief state={state} dispatch={dispatch} />
       case 'selection':
         return <StepSelection state={state} dispatch={dispatch} />
       case 'photo':

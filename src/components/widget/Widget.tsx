@@ -29,11 +29,6 @@ export default function Widget({ open, setOpen }: WidgetProps) {
     return () => window.removeEventListener('keydown', onKey)
   }, [open, setOpen])
 
-  const parcourirBoutique = () => {
-    setOpen(false)
-    document.getElementById('grille-produits')?.scrollIntoView({ behavior: 'smooth' })
-  }
-
   return (
     <>
       <WidgetLauncher open={open} onToggle={() => setOpen(!open)} />
@@ -43,7 +38,6 @@ export default function Widget({ open, setOpen }: WidgetProps) {
           dispatch={dispatch}
           onClose={() => setOpen(false)}
           onRestart={() => dispatch({ type: 'RESET' })}
-          onBrowse={parcourirBoutique}
         />
       )}
     </>

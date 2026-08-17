@@ -1,12 +1,11 @@
 // Détection d'intention 100 % code — première ligne du pipeline hybride.
-// Elle sert à deux choses : ne PAS poser une question dont la réponse est déjà
-// dans la demande libre, et faire tourner la démo sans clé API. L'IA
-// (/api/analyze) ne fait ensuite qu'affiner ce que le code n'a pas su lire.
+// Elle sert à deux choses : décider si l'appel à l'IA vaut la peine d'être
+// dépensé, et faire tourner la démo sans clé API. L'IA (/api/analyze) ne fait
+// ensuite qu'affiner ce que le code n'a pas su lire.
 
 import type { Categorie, Coupe, Intention, Occasion, WidgetState } from '../types'
 import { INTENTION_VIDE } from '../types'
 import { VOCABULAIRE_COULEURS, VOCABULAIRE_MATIERES } from '../data/catalogue'
-import { appliquerReponses } from '../data/questions'
 
 /** Minuscules + suppression des accents (NFD) pour comparer sans casse ni diacritiques. */
 export function normaliser(s: string): string {
@@ -212,7 +211,7 @@ export function detecterIntention(texte: string): Intention {
  */
 export function intentionCourante(state: WidgetState): Intention {
   if (state.analyse) return state.analyse.intent
-  return appliquerReponses(detecterIntention(state.demande), state.reponses)
+  return detecterIntention(state.demande)
 }
 
 /**

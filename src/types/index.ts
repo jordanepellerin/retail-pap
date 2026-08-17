@@ -103,13 +103,17 @@ export const INTENTION_VIDE: Intention = {
   motsCles: []
 }
 
-/** Machine d'état du flow conversationnel du widget. */
+/**
+ * Machine d'état du flow conversationnel du widget.
+ *
+ * Le parcours tient en une seule saisie : `request` (demande libre + amorces),
+ * `matching` (transitoire), puis les résultats. Ni écran d'accueil, ni
+ * questions de qualification, ni écran de reformulation — la reformulation est
+ * rendue en tête des résultats, et `selection` ramène à `request` pour relancer.
+ */
 export type Step =
-  | 'welcome'
   | 'request'
-  | 'qualify'
   | 'matching'
-  | 'brief'
   | 'selection'
   | 'photo'
   | 'outfit'
@@ -148,13 +152,8 @@ export interface PhotoMeta {
 /** État complet de la conversation widget. */
 export interface WidgetState {
   step: Step
-  /** Demande libre saisie à l'étape `request`. */
+  /** Demande libre saisie à l'étape `request` — seule entrée du parcours. */
   demande: string
-  /**
-   * Réponses aux questions de qualification, indexées par id de question.
-   * Une clé présente avec un tableau vide = question passée (elle n'est plus posée).
-   */
-  reponses: Record<string, string[]>
   /** Photo du visiteur (facultative) : dataURL JPEG réduite ≤ 1280 px. */
   photo: string | null
   photoMeta: PhotoMeta | null

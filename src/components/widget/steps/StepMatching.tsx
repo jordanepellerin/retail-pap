@@ -3,7 +3,6 @@ import type { WidgetState } from '../../../types'
 import type { WidgetDispatch } from '../state'
 import { StepEyebrow } from '../ui'
 import { besoinAnalyseIA, detecterIntention, fusionner } from '../../../lib/intent'
-import { appliquerReponses } from '../../../data/questions'
 import { classerArticles, categoriesDemandees } from '../../../lib/matching'
 import { criteres } from '../../../lib/brief'
 import { analyser, reformuler } from '../../../lib/aiClient'
@@ -42,17 +41,16 @@ export default function StepMatching({ state, dispatch }: StepMatchingProps) {
 
       // ① Intention en pur code, puis analyse IA seulement si elle apporte
       // quelque chose (demande que le code n'a pas su lire entièrement).
+      // Il n'y a plus de questions de qualification : la demande libre est la
+      // seule source, et l'IA porte donc toute la lecture du langage naturel.
       const codeIntention = detecterIntention(demande)
-      let intention = appliquerReponses(codeIntention, state.reponses)
+      let intention = codeIntention
 
       if (besoinAnalyseIA(demande, codeIntention)) {
         dispatch({ type: 'ANALYSE_START' })
         const [resultat] = await Promise.all([analyser({ demande }), delai(800)])
         if (annule) return
-        if (resultat) {
-          // Les réponses de l'utilisateur restent prioritaires sur l'IA.
-          intention = appliquerReponses(fusionner(codeIntention, resultat.intent), state.reponses)
-        }
+        if (resultat) intention = fusionner(codeIntention, resultat.intent)
       } else {
         await delai(700)
         if (annule) return
@@ -84,7 +82,8 @@ export default function StepMatching({ state, dispatch }: StepMatchingProps) {
       ])
       if (annule) return
       dispatch(brief ? { type: 'BRIEF_DONE', value: brief } : { type: 'BRIEF_ERROR' })
-      dispatch({ type: 'GOTO', step: 'brief' })
+      // Plus d'écran de reformulation : elle est rendue en tête des résultats.
+      dispatch({ type: 'GOTO', step: 'selection' })
     }
     void run()
     return () => {
