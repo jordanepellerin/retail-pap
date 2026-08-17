@@ -10,20 +10,6 @@ import { normaliser } from './intent'
 /** Catégories proposées à un visiteur qui n'a rien précisé. */
 const CATEGORIES_PAR_DEFAUT: Categorie[] = ['costume', 'veste', 'chemise']
 
-/**
- * Familles complémentaires suggérées à l'étape « complétez la tenue », selon ce
- * que le visiteur a déjà retenu. Une tenue se construit du haut vers le bas.
- */
-const COMPLEMENTS: Record<Categorie, Categorie[]> = {
-  costume: ['chemise', 'chaussures', 'accessoire'],
-  veste: ['pantalon', 'chemise', 'chaussures', 'accessoire'],
-  pantalon: ['chemise', 'veste', 'chaussures', 'accessoire'],
-  chemise: ['costume', 'veste', 'pantalon', 'accessoire'],
-  maille: ['pantalon', 'veste', 'chaussures'],
-  chaussures: ['pantalon', 'chemise', 'accessoire'],
-  accessoire: ['chemise', 'costume', 'chaussures']
-}
-
 /** Un terme du besoin est-il présent dans une liste du catalogue ? */
 function intersecte(besoin: string[], catalogue: string[]): string[] {
   const norm = catalogue.map(normaliser)
@@ -122,27 +108,6 @@ export function classerArticles(intention: Intention, categories?: Categorie[]):
 /** Familles réellement demandées (avec repli), pour la phase 1 de la sélection. */
 export function categoriesDemandees(intention: Intention): Categorie[] {
   return intention.categories.length > 0 ? intention.categories : CATEGORIES_PAR_DEFAUT
-}
-
-/**
- * Familles à proposer en complément, dérivées de la tenue en cours puis de la
- * demande initiale. Les familles dont un emplacement est déjà pris restent
- * proposées : le visiteur peut vouloir changer d'avis (le remplacement est géré
- * par `lib/tenue.ts`).
- */
-export function categoriesComplementaires(
-  intention: Intention,
-  tenue: Article[]
-): Categorie[] {
-  const dejaDemandees = categoriesDemandees(intention)
-  const sources = tenue.length > 0 ? tenue.map((a) => a.categorie) : dejaDemandees
-  const suggerees: Categorie[] = []
-  for (const source of sources) {
-    for (const c of COMPLEMENTS[source]) {
-      if (!suggerees.includes(c) && !dejaDemandees.includes(c)) suggerees.push(c)
-    }
-  }
-  return suggerees
 }
 
 /**

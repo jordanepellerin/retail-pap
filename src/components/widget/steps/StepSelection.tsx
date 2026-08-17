@@ -8,12 +8,7 @@ import VisuelProduit from '../../VisuelProduit'
 import ModaleFamilles from '../ModaleFamilles'
 import { intentionCourante } from '../../../lib/intent'
 import { briefCode, criteres } from '../../../lib/brief'
-import {
-  categoriesComplementaires,
-  categoriesDemandees,
-  classerArticles,
-  prioriserAccords
-} from '../../../lib/matching'
+import { categoriesDemandees, classerArticles, prioriserAccords } from '../../../lib/matching'
 import { noticeRemplacement } from '../../../lib/tenue'
 
 interface StepSelectionProps {
@@ -68,7 +63,7 @@ function CarrouselCategorie({
           onScroll={onScroll}
           className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto"
         >
-          {matches.map(({ article, raisons }) => {
+          {matches.map(({ article }) => {
             const actif = retenus.has(article.id)
             return (
               <button
@@ -90,18 +85,9 @@ function CarrouselCategorie({
                   />
                 </div>
 
-                {raisons.length > 0 && (
-                  <div className="absolute left-3 top-3 flex max-w-[78%] flex-wrap gap-1.5">
-                    {raisons.slice(0, 2).map((r) => (
-                      <span
-                        key={r}
-                        className="border border-sable/60 bg-noir-encre/90 px-2.5 py-1 font-sans text-[10px] font-medium text-sable"
-                      >
-                        {r}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {/* Aucune étiquette par-dessus le visuel : la photo produit se
+                    suffit. Le scoring continue de produire `raisons`, il n'est
+                    simplement plus affiché ici. */}
 
                 <div className="absolute inset-x-0 bottom-0 border-t border-white/10 bg-noir-encre/90 px-4 py-3 backdrop-blur-md">
                   <p className="font-serif text-[17px] leading-tight text-white">{article.nom}</p>
@@ -182,19 +168,22 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
   const [famillesAjoutees, setFamillesAjoutees] = useState<Categorie[]>([])
   const [choixOuvert, setChoixOuvert] = useState(false)
 
+  /**
+   * Familles affichées.
+   *
+   * Phase `demande` : celles que le visiteur a demandées, montrées d'office.
+   * Phase `complements` : RIEN au départ. Cet écran ne propose plus de familles
+   * de sa propre initiative — le visiteur les fait apparaître une par une
+   * depuis « Ajouter une famille », dans l'ordre où il les choisit.
+   */
   const famillesBase = useMemo(
-    () =>
-      phase === 'demande'
-        ? categoriesDemandees(intention)
-        : categoriesComplementaires(intention, state.tenue),
+    () => (phase === 'demande' ? categoriesDemandees(intention) : []),
     // `state.tenue` ne doit pas réordonner les familles sous le doigt du
     // visiteur : on ne recalcule qu'au changement de phase.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [phase]
   )
 
-  // Les familles demandées explicitement viennent après les suggestions, dans
-  // l'ordre où le visiteur les a choisies.
   const familles = useMemo(
     () => [...famillesBase, ...famillesAjoutees.filter((c) => !famillesBase.includes(c))],
     [famillesBase, famillesAjoutees]
@@ -219,8 +208,12 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
 
   const retenus = new Set(state.tenue.map((a) => a.id))
   const nb = state.tenue.length
-  const affichees = parFamille.filter((g) => g.matches.length > 0).slice(0, visible)
-  const restantes = parFamille.filter((g) => g.matches.length > 0).length - affichees.length
+  const nonVides = parFamille.filter((g) => g.matches.length > 0)
+  // Le plafond d'affichage ne vaut que pour la phase `demande`, où les familles
+  // arrivent d'office. En complément, chacune a été demandée explicitement :
+  // en cacher une derrière un « voir plus » serait ignorer le geste du visiteur.
+  const affichees = phase === 'demande' ? nonVides.slice(0, visible) : nonVides
+  const restantes = phase === 'demande' ? nonVides.length - affichees.length : 0
 
   const notice = dernierAjout ? noticeRemplacement(dernierAjout, state.derniersRetires) : null
 
@@ -266,9 +259,6 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
       ...precedent,
       ...choisies.filter((c) => !precedent.includes(c))
     ])
-    // Sans cela, les familles ajoutées tomberaient sous le plafond d'affichage
-    // et le visiteur ne verrait rien se passer.
-    setVisible((v) => v + choisies.length)
     setChoixOuvert(false)
   }
 
@@ -321,7 +311,8 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
           <StepEyebrow>Complétez la tenue</StepEyebrow>
           <Prompt>Souhaitez-vous compléter votre tenue&nbsp;?</Prompt>
           <Subtext>
-            Ces pièces s’accordent à ce que vous venez de choisir. Rien n’est obligatoire.
+            Choisissez les familles que vous voulez voir. Les pièces proposées s’accorderont à ce
+            que vous avez retenu. Rien n’est obligatoire.
           </Subtext>
 
           {famillesProposables.length > 0 && (
@@ -381,11 +372,19 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
             onToggle={basculer}
           />
         ))}
-        {affichees.length === 0 && (
-          <p className="font-sans text-[13px] font-light leading-relaxed text-gris-texte">
-            Aucune pièce ne correspond à tous vos critères. Revenez en arrière pour en assouplir un.
-          </p>
-        )}
+        {affichees.length === 0 &&
+          (phase === 'complements' ? (
+            <p className="border border-dashed border-white/15 px-4 py-6 text-center font-sans text-[13px] font-light leading-relaxed text-gris-texte">
+              Aucune famille ouverte pour l’instant. Utilisez «&nbsp;Ajouter une famille&nbsp;»
+              ci-dessus pour choisir ce que vous voulez voir — ou continuez avec votre tenue telle
+              quelle.
+            </p>
+          ) : (
+            <p className="font-sans text-[13px] font-light leading-relaxed text-gris-texte">
+              Aucune pièce ne correspond à tous vos critères. Revenez en arrière pour en assouplir
+              un.
+            </p>
+          ))}
       </div>
 
       <div className="mt-auto space-y-4 pt-7">
