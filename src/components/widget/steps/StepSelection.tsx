@@ -159,6 +159,9 @@ function CarrouselCategorie({
 }
 
 const PAR_PAGE = 3 // familles affichées par bloc
+// Côté de la vignette dans la bande de tenue. La tuile « + » s'aligne dessus :
+// une seule valeur pour que les deux ne dérivent jamais l'une de l'autre.
+const COTE_VIGNETTE = 48
 
 export default function StepSelection({ state, dispatch }: StepSelectionProps) {
   const intention = intentionCourante(state)
@@ -254,6 +257,11 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.tenue])
 
+  // La tuile « + » vit dans la bande de tenue : elle doit donc rester affichable
+  // même si le visiteur retire toutes ses pièces en phase complément, sinon la
+  // bande disparaît et emporte le seul accès aux familles.
+  const peutAjouterFamille = phase === 'complements' && famillesProposables.length > 0
+
   const ajouterFamilles = (choisies: Categorie[]) => {
     setFamillesAjoutees((precedent) => [
       ...precedent,
@@ -314,28 +322,14 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
             Choisissez les familles que vous voulez voir. Les pièces proposées s’accorderont à ce
             que vous avez retenu. Rien n’est obligatoire.
           </Subtext>
-
-          {famillesProposables.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setChoixOuvert(true)}
-              className="mt-4 flex items-center gap-3 self-start border border-white/25 py-2 pl-2 pr-4 transition-all duration-200 hover:border-sable hover:bg-sable/10"
-            >
-              <span
-                aria-hidden="true"
-                className="flex h-8 w-8 items-center justify-center border border-sable/50 text-[18px] leading-none text-sable"
-              >
-                +
-              </span>
-              <span className="font-sans text-[13px] text-white">Ajouter une famille</span>
-            </button>
-          )}
         </>
       )}
 
-      {/* Bande de la tenue en cours — visible dès qu'une pièce est retenue */}
-      {nb > 0 && (
-        <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto pb-1">
+      {/* Bande de la tenue en cours — visible dès qu'une pièce est retenue. La
+          tuile « + » y tient sa place, à la suite des pièces : même ligne, même
+          hauteur, et le libellé tombe (le signe se suffit à lui-même). */}
+      {(nb > 0 || peutAjouterFamille) && (
+        <div className="no-scrollbar mt-4 flex items-center gap-2 overflow-x-auto pb-1">
           {state.tenue.map((a) => (
             <button
               key={a.id}
@@ -344,12 +338,25 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
               aria-label={`Retirer ${a.nom} de la tenue`}
               className="group relative shrink-0"
             >
-              <VignetteArticle article={a} taille={48} />
+              <VignetteArticle article={a} taille={COTE_VIGNETTE} />
               <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center bg-noir-encre text-[11px] text-white opacity-0 transition-opacity group-hover:opacity-100">
                 ×
               </span>
             </button>
           ))}
+
+          {peutAjouterFamille && (
+            <button
+              type="button"
+              onClick={() => setChoixOuvert(true)}
+              aria-label="Ajouter une famille"
+              title="Ajouter une famille"
+              className="flex shrink-0 items-center justify-center bg-sable text-[22px] leading-none text-noir-encre transition-colors duration-200 hover:bg-white"
+              style={{ width: COTE_VIGNETTE, height: COTE_VIGNETTE * 1.25 }}
+            >
+              <span aria-hidden="true">+</span>
+            </button>
+          )}
         </div>
       )}
 
