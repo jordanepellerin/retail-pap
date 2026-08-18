@@ -7,7 +7,7 @@ import VisuelProduit from '../VisuelProduit'
 export function Prompt({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <p
-      className={`anim-bubble font-serif text-[21px] font-medium leading-[1.25] text-white ${className}`}
+      className={`anim-bubble font-serif text-[21px] font-medium leading-[1.25] text-noir-encre ${className}`}
     >
       {children}
     </p>
@@ -32,7 +32,7 @@ export function StepEyebrow({ children }: { children: ReactNode }) {
   )
 }
 
-/** CTA principal du widget : bloc sable, texte noir, angles droits. */
+/** CTA principal du widget : bloc noir plein, angles droits — même bouton que la modale d’essayage. */
 export function PrimaryButton({
   children,
   onClick,
@@ -49,7 +49,7 @@ export function PrimaryButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className="w-full bg-sable px-5 py-3.5 font-sans text-[12px] font-medium uppercase tracking-[0.14em] text-noir-encre transition-all duration-200 hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:brightness-100"
+      className="btn-dark w-full px-5 py-3.5 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-noir-encre"
     >
       {children}
     </button>
@@ -68,7 +68,7 @@ export function SecondaryButton({
     <button
       type="button"
       onClick={onClick}
-      className="w-full py-1 text-center font-sans text-[12px] font-light text-gris-texte transition-colors duration-200 hover:text-white"
+      className="w-full py-1 text-center font-sans text-[12px] font-light text-gris-texte transition-colors duration-200 hover:text-noir-encre"
     >
       {children}
     </button>
@@ -95,7 +95,7 @@ export function Chip({
       <span className="flex items-center justify-between gap-3">
         {children}
         {active && (
-          <span className="shrink-0 text-sable" aria-hidden="true">
+          <span className="shrink-0 text-noir-encre" aria-hidden="true">
             ✓
           </span>
         )}
@@ -127,7 +127,7 @@ export function VignetteArticle({
 }) {
   return (
     <span
-      className="block shrink-0 overflow-hidden border border-white/10"
+      className="block shrink-0 overflow-hidden border border-gris-bordure"
       style={{ width: taille, height: taille * 1.25, background: article.gradient }}
     >
       <VisuelProduit article={article} decoratif className="h-full w-full object-cover" />
@@ -139,13 +139,13 @@ export function VignetteArticle({
 export function LigneArticle({ article }: { article: Article }) {
   return (
     <span className="min-w-0 flex-1">
-      <span className="block truncate font-serif text-[15px] leading-tight text-white">
+      <span className="block truncate font-serif text-[15px] leading-tight text-noir-encre">
         {article.nom}
       </span>
       <span className="mt-0.5 block truncate font-sans text-[11.5px] font-light text-gris-texte">
         {article.couleur} · {article.matiere}
       </span>
-      <span className="mt-0.5 block font-sans text-[12px] text-sable">
+      <span className="mt-0.5 block font-sans text-[12px] text-noir-encre">
         {formatPrix(article.prix)}
       </span>
     </span>

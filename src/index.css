@@ -63,24 +63,24 @@ body {
 
   /* Puce cliquable du widget (suggestions, réponses de qualification) */
   .chip {
-    @apply w-full text-left font-sans text-[13.5px] leading-snug text-white
-           border border-white/25 px-4 py-3 transition-all duration-200
-           hover:border-sable hover:bg-sable/10 cursor-pointer;
+    @apply w-full text-left font-sans text-[13.5px] leading-snug text-noir-encre
+           border border-gris-bordure px-4 py-3 transition-all duration-200
+           hover:border-noir-encre hover:bg-gris-clair cursor-pointer;
   }
   .chip-active {
-    @apply border-sable bg-sable/15 text-white;
+    @apply border-noir-encre bg-gris-clair text-noir-encre;
   }
 
   /* Champs de saisie du widget */
   .field {
-    @apply w-full bg-[#161616] text-white font-sans text-[14px] px-4 py-3
-           border border-white/20 outline-none transition-colors duration-200
-           placeholder:text-gris-texte focus:border-sable;
+    @apply w-full bg-gris-clair text-noir-encre font-sans text-[14px] px-4 py-3
+           border border-gris-bordure outline-none transition-colors duration-200
+           placeholder:text-gris-texte focus:border-noir-encre;
   }
   .field-area {
-    @apply w-full resize-none bg-[#161616] text-white font-sans text-[13px] leading-relaxed
-           px-4 py-3 border border-white/20 outline-none transition-colors
-           duration-200 placeholder:text-gris-texte focus:border-sable;
+    @apply w-full resize-none bg-gris-clair text-noir-encre font-sans text-[13px] leading-relaxed
+           px-4 py-3 border border-gris-bordure outline-none transition-colors
+           duration-200 placeholder:text-gris-texte focus:border-noir-encre;
   }
 }
 
@@ -182,11 +182,11 @@ body {
   width: 6px;
 }
 .widget-scroll::-webkit-scrollbar-thumb {
-  background: rgba(194, 173, 140, 0.35);
+  background: rgba(10, 10, 10, 0.2);
 }
 .widget-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(194, 173, 140, 0.35) transparent;
+  scrollbar-color: rgba(10, 10, 10, 0.2) transparent;
 }
 
 /* Description de catégorie repliée : fondu bas façon « lire plus » */

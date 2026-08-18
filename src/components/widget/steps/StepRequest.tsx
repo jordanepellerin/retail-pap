@@ -60,7 +60,7 @@ export default function StepRequest({ state, dispatch }: StepRequestProps) {
             <button
               type="button"
               onClick={() => dispatch({ type: 'SET_DEMANDE', value: '' })}
-              className="font-sans text-[11px] font-light text-gris-texte transition-colors hover:text-white"
+              className="font-sans text-[11px] font-light text-gris-texte transition-colors hover:text-noir-encre"
             >
               Effacer
             </button>
@@ -89,7 +89,7 @@ export default function StepRequest({ state, dispatch }: StepRequestProps) {
                 className={`chip flex items-center justify-between gap-3 ${actif ? 'chip-active' : ''}`}
               >
                 {s}
-                <span className="shrink-0 text-sable" aria-hidden="true">
+                <span className="shrink-0 text-noir-encre" aria-hidden="true">
                   {actif ? '✓' : '↓'}
                 </span>
               </button>

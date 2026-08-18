@@ -47,7 +47,7 @@ export default function StepOutfit({ state, dispatch }: StepOutfitProps) {
       </Subtext>
 
       {nb > 0 && (
-        <ul className="mt-5 divide-y divide-white/8 border-y border-white/10">
+        <ul className="mt-5 divide-y divide-gris-bordure border-y border-gris-bordure">
           {tenue.map((a) => (
             <li key={a.id} className="flex items-center gap-3 py-3">
               <VignetteArticle article={a} taille={48} />
@@ -56,7 +56,7 @@ export default function StepOutfit({ state, dispatch }: StepOutfitProps) {
                 type="button"
                 onClick={() => dispatch({ type: 'RETIRER_ARTICLE', id: a.id })}
                 aria-label={`Retirer ${a.nom}`}
-                className="flex h-8 w-8 shrink-0 items-center justify-center border border-white/15 text-[14px] text-gris-texte transition-colors hover:border-white/40 hover:text-white"
+                className="flex h-8 w-8 shrink-0 items-center justify-center border border-gris-bordure text-[14px] text-gris-texte transition-colors hover:border-noir-encre hover:text-noir-encre"
               >
                 ×
               </button>
@@ -70,17 +70,17 @@ export default function StepOutfit({ state, dispatch }: StepOutfitProps) {
           <span className="font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-gris-texte">
             Total
           </span>
-          <span className="font-serif text-[19px] text-white">{formatPrix(totalTenue(tenue))}</span>
+          <span className="font-serif text-[19px] text-noir-encre">{formatPrix(totalTenue(tenue))}</span>
         </div>
       )}
 
       <div className="mt-auto space-y-3 pt-7">
         {confirmation ? (
-          <div className="anim-bubble border border-sable/40 bg-sable/[0.07] p-4">
-            <p className="font-serif text-[15px] leading-snug text-white">
+          <div className="anim-bubble border border-gris-bordure bg-gris-clair p-4">
+            <p className="font-serif text-[15px] leading-snug text-noir-encre">
               Je lance la génération avec {nb} pièce{nb > 1 ? 's' : ''}&nbsp;?
             </p>
-            <p className="mt-1.5 font-sans text-[12px] font-light leading-relaxed text-white/70">
+            <p className="mt-1.5 font-sans text-[12px] font-light leading-relaxed text-gris-texte">
               Comptez une vingtaine de secondes. Vous pourrez revenir modifier votre tenue ensuite.
             </p>
             <div className="mt-4 space-y-2.5">

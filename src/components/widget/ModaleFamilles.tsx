@@ -59,20 +59,20 @@ export default function ModaleFamilles({ familles, onAjouter, onFermer }: Modale
         role="dialog"
         aria-modal="true"
         aria-label="Ajouter des familles à la sélection"
-        className="anim-widget-open relative m-3 flex max-h-[calc(100%-24px)] flex-col border border-sable/30 bg-noir-encre shadow-[0_24px_60px_rgba(0,0,0,0.7)]"
+        className="anim-widget-open relative m-3 flex max-h-[calc(100%-24px)] flex-col border border-gris-bordure bg-blanc-pur shadow-[0_24px_60px_rgba(0,0,0,0.35)]"
       >
-        <header className="relative shrink-0 border-b border-white/10 px-5 py-4">
+        <header className="relative shrink-0 border-b border-gris-bordure px-5 py-4">
           <p className="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-sable">
             Compléter la tenue
           </p>
-          <h3 className="mt-1 font-serif text-[19px] leading-snug text-white">
+          <h3 className="mt-1 font-serif text-[19px] leading-snug text-noir-encre">
             Quelles familles voulez-vous voir&nbsp;?
           </h3>
           <button
             type="button"
             onClick={onFermer}
             aria-label="Fermer"
-            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center text-[18px] text-white/55 transition-colors hover:bg-white/10 hover:text-white"
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center text-[18px] text-gris-texte transition-colors hover:bg-gris-clair hover:text-noir-encre"
           >
             ×
           </button>
@@ -87,8 +87,8 @@ export default function ModaleFamilles({ familles, onAjouter, onFermer }: Modale
                   <label
                     className={`flex cursor-pointer items-center gap-3 border px-4 py-3 transition-all duration-200 ${
                       actif
-                        ? 'border-sable bg-sable/15'
-                        : 'border-white/25 hover:border-sable hover:bg-sable/10'
+                        ? 'border-noir-encre bg-gris-clair'
+                        : 'border-gris-bordure hover:border-noir-encre hover:bg-gris-clair'
                     }`}
                   >
                     <input
@@ -101,13 +101,13 @@ export default function ModaleFamilles({ familles, onAjouter, onFermer }: Modale
                       aria-hidden="true"
                       className={`flex h-5 w-5 shrink-0 items-center justify-center border text-[12px] transition-colors ${
                         actif
-                          ? 'border-sable bg-sable text-noir-encre'
-                          : 'border-white/35 text-transparent'
+                          ? 'border-noir-encre bg-noir-encre text-white'
+                          : 'border-gris-bordure text-transparent'
                       }`}
                     >
                       ✓
                     </span>
-                    <span className="flex-1 font-sans text-[13.5px] text-white">
+                    <span className="flex-1 font-sans text-[13.5px] text-noir-encre">
                       {LIBELLES_CATEGORIE[categorie].pluriel}
                     </span>
                     <span className="shrink-0 font-sans text-[11px] font-light text-gris-texte">
@@ -120,7 +120,7 @@ export default function ModaleFamilles({ familles, onAjouter, onFermer }: Modale
           </ul>
         </div>
 
-        <div className="shrink-0 space-y-2.5 border-t border-white/10 p-4">
+        <div className="shrink-0 space-y-2.5 border-t border-gris-bordure p-4">
           <PrimaryButton onClick={() => onAjouter(choisies)} disabled={choisies.length === 0}>
             {choisies.length === 0
               ? 'Choisissez une famille'

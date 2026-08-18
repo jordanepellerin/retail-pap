@@ -44,12 +44,12 @@ function CarrouselCategorie({
 
   const multiple = matches.length > 1
   const flecheCls =
-    'absolute top-[40%] z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center bg-white/90 text-[20px] text-noir-encre shadow-md transition-colors hover:text-sable sm:flex'
+    'absolute top-[40%] z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center border border-gris-bordure bg-blanc-pur text-[20px] text-noir-encre shadow-md transition-colors hover:bg-gris-clair sm:flex'
 
   return (
     <section>
       <div className="mb-2 flex items-baseline justify-between">
-        <h3 className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-sable">
+        <h3 className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-gris-texte">
           {LIBELLES_CATEGORIE[categorie].pluriel}
         </h3>
         <span className="font-sans text-[11px] font-light text-gris-texte">
@@ -75,8 +75,7 @@ function CarrouselCategorie({
               >
                 {/* object-contain : la pièce est montrée en entier, jamais recadrée */}
                 <div
-                  className="aspect-[3/4] w-full"
-                  style={{ background: 'linear-gradient(180deg,#141414,#0D0D0D)' }}
+                  className="aspect-[3/4] w-full bg-gris-clair"
                 >
                   <VisuelProduit
                     article={article}
@@ -89,24 +88,24 @@ function CarrouselCategorie({
                     suffit. Le scoring continue de produire `raisons`, il n'est
                     simplement plus affiché ici. */}
 
-                <div className="absolute inset-x-0 bottom-0 border-t border-white/10 bg-noir-encre/90 px-4 py-3 backdrop-blur-md">
-                  <p className="font-serif text-[17px] leading-tight text-white">{article.nom}</p>
-                  <p className="mt-1 font-sans text-[12px] font-light text-white/75">
+                <div className="absolute inset-x-0 bottom-0 border-t border-gris-bordure bg-blanc-pur/95 px-4 py-3 backdrop-blur-md">
+                  <p className="font-serif text-[17px] leading-tight text-noir-encre">{article.nom}</p>
+                  <p className="mt-1 font-sans text-[12px] font-light text-gris-texte">
                     {article.couleur} · {article.matiere}
                   </p>
-                  <p className="mt-1 font-sans text-[13px] text-sable">{formatPrix(article.prix)}</p>
+                  <p className="mt-1 font-sans text-[13px] text-noir-encre">{formatPrix(article.prix)}</p>
                 </div>
 
                 <span
                   className={`pointer-events-none absolute inset-0 ring-2 ring-inset transition-colors ${
-                    actif ? 'ring-sable' : 'ring-transparent'
+                    actif ? 'ring-noir-encre' : 'ring-transparent'
                   }`}
                 />
                 <span
                   className={`absolute right-3 top-3 flex h-7 w-7 items-center justify-center text-[14px] transition-colors ${
                     actif
-                      ? 'bg-sable text-noir-encre'
-                      : 'border border-white/60 bg-noir-encre/80 text-white'
+                      ? 'bg-noir-encre text-white'
+                      : 'border border-gris-bordure bg-blanc-pur/90 text-noir-encre'
                   }`}
                   aria-hidden="true"
                 >
@@ -147,7 +146,7 @@ function CarrouselCategorie({
                 onClick={() => allerA(i)}
                 aria-label={`Voir la pièce ${i + 1}`}
                 className={`h-1.5 transition-all ${
-                  i === idx ? 'w-5 bg-sable' : 'w-1.5 bg-white/30 hover:bg-white/50'
+                  i === idx ? 'w-5 bg-noir-encre' : 'w-1.5 bg-gris-bordure hover:bg-gris-texte/50'
                 }`}
               />
             ))}
@@ -294,7 +293,7 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
           {/* La reformulation tenait un écran à elle seule ; elle tient
               maintenant en tête des résultats — le visiteur vérifie qu'on l'a
               compris sans qu'un clic de plus le sépare de sa sélection. */}
-          <p className="anim-bubble mt-3 border-l-2 border-sable/60 pl-3 font-sans text-[13px] font-light leading-relaxed text-white/80">
+          <p className="anim-bubble mt-3 border-l-2 border-sable pl-3 font-sans text-[13px] font-light leading-relaxed text-gris-texte">
             {reformulation}
           </p>
           {criteresLus.length > 0 && (
@@ -302,7 +301,7 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
               {criteresLus.map((c) => (
                 <span
                   key={`${c.champ}-${c.valeur}`}
-                  className="border border-sable/40 bg-sable/[0.08] px-2.5 py-1 font-sans text-[11px] text-white/90"
+                  className="border border-gris-bordure bg-gris-clair px-2.5 py-1 font-sans text-[11px] text-noir-encre"
                 >
                   {c.label}
                 </span>
@@ -351,7 +350,7 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
               onClick={() => setChoixOuvert(true)}
               aria-label="Ajouter une famille"
               title="Ajouter une famille"
-              className="flex shrink-0 items-center justify-center border border-sable/50 text-[22px] leading-none text-sable transition-colors duration-200 hover:border-sable hover:bg-sable/10"
+              className="flex shrink-0 items-center justify-center border border-gris-bordure text-[22px] leading-none text-noir-encre transition-colors duration-200 hover:border-noir-encre hover:bg-gris-clair"
               style={{ width: COTE_VIGNETTE, height: COTE_VIGNETTE * 1.25 }}
             >
               <span aria-hidden="true">+</span>
@@ -363,7 +362,7 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
       {notice && (
         <p
           role="status"
-          className="anim-bubble mt-3 border-l-2 border-sable bg-sable/[0.08] px-3 py-2 font-sans text-[12px] font-light leading-relaxed text-white/85"
+          className="anim-bubble mt-3 border-l-2 border-sable bg-gris-clair px-3 py-2 font-sans text-[12px] font-light leading-relaxed text-noir-encre"
         >
           {notice}
         </p>
@@ -381,7 +380,7 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
         ))}
         {affichees.length === 0 &&
           (phase === 'complements' ? (
-            <p className="border border-dashed border-white/15 px-4 py-6 text-center font-sans text-[13px] font-light leading-relaxed text-gris-texte">
+            <p className="border border-dashed border-gris-bordure px-4 py-6 text-center font-sans text-[13px] font-light leading-relaxed text-gris-texte">
               Aucune famille ouverte pour l’instant. Touchez le «&nbsp;+&nbsp;» ci-dessus pour
               choisir ce que vous voulez voir — ou continuez avec votre tenue telle quelle.
             </p>
@@ -398,7 +397,7 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
           <button
             type="button"
             onClick={() => setVisible((v) => v + PAR_PAGE)}
-            className="w-full text-center font-sans text-[12px] font-medium uppercase tracking-[0.14em] text-sable transition-colors hover:text-white"
+            className="w-full text-center font-sans text-[12px] font-medium uppercase tracking-[0.14em] text-gris-texte transition-colors hover:text-noir-encre"
           >
             Voir {restantes} famille{restantes > 1 ? 's' : ''} de plus →
           </button>
@@ -428,11 +427,11 @@ export default function StepSelection({ state, dispatch }: StepSelectionProps) {
 
         {/* Sortie de secours du parcours : rien ne convient, on repart de la
             demande elle-même plutôt que d'insister sur cette sélection. */}
-        <div className="border-t border-white/10 pt-4">
+        <div className="border-t border-gris-bordure pt-4">
           <button
             type="button"
             onClick={modifierLaDemande}
-            className="w-full text-center font-sans text-[12px] font-medium uppercase tracking-[0.14em] text-gris-texte transition-colors hover:text-white"
+            className="w-full text-center font-sans text-[12px] font-medium uppercase tracking-[0.14em] text-gris-texte transition-colors hover:text-noir-encre"
           >
             ↺ Modifier ma demande
           </button>

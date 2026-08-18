@@ -15,7 +15,7 @@ function LigneRecap({ label, value }: { label: string; value: string }) {
       <span className="shrink-0 font-sans text-[11px] uppercase tracking-[0.14em] text-gris-texte">
         {label}
       </span>
-      <span className="text-right font-sans text-[12px] text-white">{value}</span>
+      <span className="text-right font-sans text-[12px] text-noir-encre">{value}</span>
     </div>
   )
 }
@@ -26,8 +26,8 @@ export default function StepDone({ state, dispatch }: StepDoneProps) {
   return (
     <div className="flex min-h-full flex-col p-5">
       <div className="flex justify-center pt-2">
-        <div className="anim-pop-in flex h-16 w-16 items-center justify-center rounded-full bg-sable">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth={2.5} className="h-8 w-8">
+        <div className="anim-pop-in flex h-16 w-16 items-center justify-center rounded-full bg-noir-encre">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2.5} className="h-8 w-8">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
@@ -41,14 +41,14 @@ export default function StepDone({ state, dispatch }: StepDoneProps) {
         </Subtext>
       </div>
 
-      <div className="mt-5 bg-[#161616] p-4">
-        <p className="mb-2 font-sans text-[10px] uppercase tracking-[0.2em] text-sable">
+      <div className="mt-5 border border-gris-bordure bg-gris-clair p-4">
+        <p className="mb-2 font-sans text-[10px] uppercase tracking-[0.2em] text-gris-texte">
           Votre tenue
         </p>
         <div className="divide-y divide-white/5">
           {tenue.map((a) => (
             <div key={a.id} className="flex items-baseline justify-between gap-3 py-1.5">
-              <span className="min-w-0 truncate font-serif text-[14px] text-white">{a.nom}</span>
+              <span className="min-w-0 truncate font-serif text-[14px] text-noir-encre">{a.nom}</span>
               <span className="shrink-0 font-sans text-[11px] tracking-[0.06em] text-gris-texte">
                 {formatPrix(a.prix)}
               </span>

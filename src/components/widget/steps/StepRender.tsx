@@ -131,10 +131,10 @@ export default function StepRender({ state, dispatch }: StepRenderProps) {
       <StepEyebrow>{avecPhoto ? 'Votre essayage' : 'Votre tenue'}</StepEyebrow>
 
       <div className="mx-auto w-fit max-w-full">
-        <div className="anim-art-reveal relative overflow-hidden border border-white/10 bg-[#111]">
+        <div className="anim-art-reveal relative overflow-hidden border border-gris-bordure bg-gris-clair">
           {enCours ? (
             <div
-              className="flex flex-col items-center justify-center bg-white px-6 text-center"
+              className="flex flex-col items-center justify-center bg-blanc-pur px-6 text-center"
               style={{ height: 320, width: 320, maxWidth: '100%' }}
             >
               <Logo large className="text-noir-encre" />
@@ -152,10 +152,10 @@ export default function StepRender({ state, dispatch }: StepRenderProps) {
           ) : (
             /* Composition de la planche en cours (canvas) */
             <div
-              className="flex items-center justify-center bg-[#161616]"
+              className="flex items-center justify-center bg-gris-clair"
               style={{ height: 320, width: 280, maxWidth: '100%' }}
             >
-              <span className="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-sable" />
+              <span className="h-7 w-7 animate-spin rounded-full border-2 border-noir-encre/15 border-t-sable" />
             </div>
           )}
 
@@ -163,7 +163,7 @@ export default function StepRender({ state, dispatch }: StepRenderProps) {
             <button
               type="button"
               onClick={() => void telecharger()}
-              className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-black/60 py-2.5 font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-white backdrop-blur-sm transition-colors hover:bg-black/75"
+              className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-noir-encre/70 py-2.5 font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-white backdrop-blur-sm transition-colors hover:bg-noir-encre/85"
             >
               <DownloadIcon className="h-4 w-4" />
               Télécharger
@@ -173,12 +173,12 @@ export default function StepRender({ state, dispatch }: StepRenderProps) {
       </div>
 
       {renderAI.status === 'error' && avecPhoto && (
-        <p className="mt-2 text-center font-sans text-[11px] font-light text-white/60">
+        <p className="mt-2 text-center font-sans text-[11px] font-light text-gris-texte">
           Essayage indisponible — voici la planche de votre tenue.{' '}
           <button
             type="button"
             onClick={relancer}
-            className="text-sable underline underline-offset-2 hover:text-white"
+            className="text-noir-encre underline underline-offset-2 hover:opacity-60"
           >
             Réessayer
           </button>
@@ -186,7 +186,7 @@ export default function StepRender({ state, dispatch }: StepRenderProps) {
       )}
 
       {/* Rappel de la composition */}
-      <div className="mt-4 bg-[#161616] p-3">
+      <div className="mt-4 border border-gris-bordure bg-gris-clair p-3">
         <div className="no-scrollbar flex gap-2 overflow-x-auto">
           {tenue.map((a) => (
             <VignetteArticle key={a.id} article={a} taille={44} />
@@ -196,10 +196,10 @@ export default function StepRender({ state, dispatch }: StepRenderProps) {
           <span className="font-sans text-[11px] uppercase tracking-[0.14em] text-gris-texte">
             {tenue.length} pièce{tenue.length > 1 ? 's' : ''}
           </span>
-          <span className="font-serif text-[17px] text-white">{formatPrix(totalTenue(tenue))}</span>
+          <span className="font-serif text-[17px] text-noir-encre">{formatPrix(totalTenue(tenue))}</span>
         </div>
         {imageIA && (
-          <p className="mt-1.5 font-sans text-[10px] font-light italic text-white/40">
+          <p className="mt-1.5 font-sans text-[10px] font-light italic text-gris-texte">
             Essayage généré à titre indicatif — les proportions réelles peuvent différer.
           </p>
         )}
