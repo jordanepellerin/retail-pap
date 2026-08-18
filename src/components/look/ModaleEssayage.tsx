@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import type { Article } from '../../types'
 import { RENDER_ARTICLES_MAX } from '../../types/ai'
 import { formatPrix } from '../../data/catalogue'
@@ -18,7 +18,6 @@ interface ModaleEssayageProps {
   onFermer: () => void
 }
 
-type Onglet = 'import' | 'camera'
 type Phase = 'photo' | 'rendu'
 type Statut = 'idle' | 'pending' | 'done' | 'error'
 
@@ -29,22 +28,18 @@ const EXEMPLE_IMAGE = '/exemples/mannequin.svg'
 /**
  * Essayage du look sur la photo du visiteur.
  *
- * Le parcours tient en deux temps : la photo (importée ou prise à la webcam) et
- * les pièces retenues, puis le rendu. Tout s'appuie sur l'existant — la même
+ * Le parcours tient en deux temps : la photo et les pièces retenues, puis le
+ * rendu. Tout s'appuie sur l'existant — la même
  * réduction d'image (`downscaleDataUrl`), le même endpoint (`rendre` →
  * /api/render), et le même repli qu'ailleurs : si le rendu n'aboutit pas, la
  * planche « flat lay » du look s'affiche. Personne ne repart sur une erreur.
  */
 export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) {
   const dialogueRef = useRef<HTMLDivElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const fluxRef = useRef<MediaStream | null>(null)
 
   const [phase, setPhase] = useState<Phase>('photo')
-  const [onglet, setOnglet] = useState<Onglet>('import')
   const [photo, setPhoto] = useState<string | null>(null)
   const [erreurPhoto, setErreurPhoto] = useState<string | null>(null)
-  const [erreurCamera, setErreurCamera] = useState<string | null>(null)
   const [retenus, setRetenus] = useState<Set<string>>(() => new Set(look.map((a) => a.id)))
   const [statut, setStatut] = useState<Statut>('idle')
   const [image, setImage] = useState<string | null>(null)
@@ -72,64 +67,8 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
     }
   }, [])
 
-  // ── Caméra ────────────────────────────────────────────────────────────────
-  const arreterCamera = useCallback(() => {
-    fluxRef.current?.getTracks().forEach((t) => t.stop())
-    fluxRef.current = null
-    if (videoRef.current) videoRef.current.srcObject = null
-  }, [])
-
-  // Le flux ne vit que pendant l'onglet caméra, et s'arrête dès qu'une photo est
-  // retenue, à la fermeture et au démontage : le voyant de la webcam doit
-  // s'éteindre en même temps que l'aperçu disparaît.
-  useEffect(() => {
-    if (phase !== 'photo' || onglet !== 'camera' || photo) {
-      arreterCamera()
-      return
-    }
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setErreurCamera(
-        "La caméra n'est pas accessible depuis ce navigateur (elle demande une connexion sécurisée)."
-      )
-      setOnglet('import')
-      return
-    }
-
-    let annule = false
-    const demarrer = async () => {
-      try {
-        const flux = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 1280 } },
-          audio: false
-        })
-        if (annule) {
-          flux.getTracks().forEach((t) => t.stop())
-          return
-        }
-        fluxRef.current = flux
-        setErreurCamera(null)
-        if (videoRef.current) {
-          videoRef.current.srcObject = flux
-          await videoRef.current.play().catch(() => undefined)
-        }
-      } catch {
-        if (annule) return
-        setErreurCamera('Accès à la caméra refusé — importez une photo à la place.')
-        setOnglet('import')
-      }
-    }
-    void demarrer()
-
-    return () => {
-      annule = true
-      arreterCamera()
-    }
-  }, [phase, onglet, photo, arreterCamera])
-
-  useEffect(() => arreterCamera, [arreterCamera])
-
   // ── Photo ─────────────────────────────────────────────────────────────────
-  // Toute image (import, capture ou silhouette SVG) est réduite ≤ 1280 px et
+  // Toute image (fichier importé ou silhouette SVG) est réduite ≤ 1280 px et
   // ré-encodée en JPEG : payload léger, et les modèles refusent le SVG.
   const integrer = async (src: string) => {
     setErreurPhoto(null)
@@ -153,27 +92,11 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
     e.target.value = '' // ré-importer le même fichier doit rester possible
   }
 
-  const capturer = async () => {
-    const video = videoRef.current
-    if (!video || video.videoWidth === 0) return
-    const canvas = document.createElement('canvas')
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    // L'aperçu est en miroir (réflexe de miroir), pas la capture : le rendu doit
-    // montrer la personne dans le bon sens.
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-    arreterCamera()
-    await integrer(canvas.toDataURL('image/jpeg', 0.9))
-  }
-
   // ── Rendu ─────────────────────────────────────────────────────────────────
   const notes = `Look complet autour de « ${principal.nom} » ${principal.couleur.toLowerCase()}. ${principal.descriptionCourte}`
 
   const lancerEssayage = async () => {
     if (!photo || pieces.length === 0) return
-    arreterCamera()
     setPhase('rendu')
     setStatut('pending')
     setImage(null)
@@ -257,13 +180,6 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
     })
   }
 
-  const ongletCls = (actif: boolean) =>
-    `flex-1 border-b-2 pb-2.5 font-sans text-[12px] font-medium uppercase tracking-[0.14em] transition-colors ${
-      actif
-        ? 'border-noir-encre text-noir-encre'
-        : 'border-transparent text-gris-texte hover:text-noir-encre'
-    }`
-
   return (
     <>
       {/* Encore au-dessus du tiroir du look (z-60), qui reste ouvert derrière. */}
@@ -303,25 +219,9 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
             <div>
               {phase === 'photo' ? (
                 <>
-                  <div className="flex gap-6 border-b border-gris-bordure">
-                    <button
-                      type="button"
-                      onClick={() => setOnglet('import')}
-                      className={ongletCls(onglet === 'import')}
-                    >
-                      Importer une photo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setErreurCamera(null)
-                        setOnglet('camera')
-                      }}
-                      className={ongletCls(onglet === 'camera')}
-                    >
-                      Prendre une photo
-                    </button>
-                  </div>
+                  <h3 className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-gris-texte">
+                    Votre photo
+                  </h3>
 
                   <p className="mt-4 font-sans text-[13px] font-light leading-relaxed text-gris-texte">
                     De face, en pied ou à mi-corps, sur un fond dégagé : c’est ce qui donne le
@@ -345,26 +245,16 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
                           Changer la photo
                         </button>
                       </div>
-                    ) : onglet === 'camera' ? (
-                      <div className="overflow-hidden border border-gris-bordure bg-noir-encre">
-                        <video
-                          ref={videoRef}
-                          playsInline
-                          muted
-                          autoPlay
-                          aria-label="Aperçu de la caméra"
-                          className="mx-auto block h-[300px] w-full -scale-x-100 object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => void capturer()}
-                          className="btn-dark w-full py-3.5"
-                        >
-                          Prendre la photo
-                        </button>
-                      </div>
                     ) : (
                       <label className="flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-gris-bordure bg-gris-clair px-6 py-12 text-center transition-colors hover:border-noir-encre">
+                        {/*
+                          Un input fichier nu, SANS attribut `capture` — et c'est
+                          tout l'enjeu. Sur ordinateur il ouvre l'explorateur de
+                          fichiers, rien d'autre. Sur mobile, iOS et Android
+                          présentent d'eux-mêmes le choix « Prendre une photo /
+                          Photothèque / Parcourir ». Ajouter `capture` forcerait
+                          l'appareil photo et supprimerait justement ce choix.
+                        */}
                         <input
                           type="file"
                           accept="image/*"
@@ -383,11 +273,6 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
                       </label>
                     )}
 
-                    {erreurCamera && (
-                      <p className="mt-3 font-sans text-[12px] font-light text-rouge-solde">
-                        {erreurCamera}
-                      </p>
-                    )}
                     {erreurPhoto && (
                       <p className="mt-3 font-sans text-[12px] font-light text-rouge-solde">
                         {erreurPhoto}
