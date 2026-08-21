@@ -115,7 +115,7 @@ function construirePrompt(look) {
   const pieces = look.map(lignePiece).join('\n')
   return `Photographie de mode e-commerce, haut de gamme, format portrait 3:4.
 
-SUJET : UN SEUL mannequin homme, debout, portant EN MÊME TEMPS les ${look.length} pièces ci-dessous — la tenue complète, rien de plus, rien de moins.
+SUJET : UN SEUL homme, un vrai mannequin de mode en chair et en os — visage, mains et carnation d'une personne réelle —, debout, portant EN MÊME TEMPS les ${look.length} pièces ci-dessous : la tenue complète, rien de plus, rien de moins.
 
 LES PIÈCES DU LOOK — les images jointes sont leurs références, dans cet ordre :
 ${pieces}
@@ -133,7 +133,7 @@ CADRAGE — règles strictes, ce sont les erreurs les plus fréquentes :
 - VUE DE FACE UNIQUEMENT. Le mannequin regarde l'objectif, on voit l'avant de la tenue : boutonnage, revers, col, cravate. Jamais de dos, jamais de profil, jamais de trois quarts arrière.
 - ${cadrage(look)}
 
-INTERDITS : aucun logo, aucune marque, aucun texte, aucun filigrane, aucun cartouche de prix, aucun collage ni bordure.`
+INTERDITS : aucun mannequin de vitrine, aucun buste de couture, aucune silhouette sans visage — c'est une personne qui porte la tenue. Aucun logo, aucune marque, aucun texte, aucun filigrane, aucun cartouche de prix, aucun collage ni bordure.`
 }
 
 // ─────────────────────────────── Exécution
