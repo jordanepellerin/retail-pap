@@ -138,23 +138,29 @@ export default function FicheProduit() {
 
         <div className="grid gap-10 pb-20 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
           {/* ── Visuel ── */}
-          {/* Sur grand écran il tient dans la hauteur de fenêtre (sinon le bouton
-              « Acheter le look », ancré en bas du visuel, passe sous la ligne de
-              flottaison) et reste collé pendant que la colonne de droite défile. */}
-          <div className="relative bg-gris-clair lg:sticky lg:top-[88px] lg:self-start">
-            {/* Le mannequin porte la TENUE COMPLÈTE — celle-là même que « Acheter
-                le look » détaille juste à côté. Sans ça, le visiteur ouvre le
-                tiroir et n'y retrouve que le costume : le reste du look
-                contredit ce qu'il a sous les yeux. Repli sur la photo de la
-                pièce seule quand elle n'a pas de photo de look. */}
-            <div className="aspect-[3/4] w-full lg:aspect-auto lg:h-[calc(100vh-120px)]">
-              <VisuelProduit
-                article={article}
-                look={looksProposes}
-                loading="eager"
-                className="h-full w-full object-cover"
-              />
-            </div>
+          {/* Le mannequin porte la TENUE COMPLÈTE — celle-là même que « Acheter
+              le look » détaille juste à côté. Sans ça, le visiteur ouvre le
+              tiroir et n'y retrouve que le costume : le reste du look contredit
+              ce qu'il a sous les yeux. Repli sur la photo de la pièce seule
+              quand elle n'a pas de photo de look.
+
+              Le cadre garde le RATIO 3:4 de la photo, jusque sur grand écran.
+              Il tenait auparavant toute la hauteur de fenêtre, dans une colonne
+              presque carrée : `object-cover` rognait alors le haut et le bas,
+              c'est-à-dire la tête et les chaussures — précisément les pièces du
+              look qu'on venait d'y mettre. C'est donc la hauteur de fenêtre qui
+              plafonne la LARGEUR (largeur = hauteur × 3/4), ce qui garde aussi
+              les deux acquis du cadrage précédent : le visuel ne dépasse jamais
+              la fenêtre, donc le bouton « Acheter le look », ancré en bas,
+              reste au-dessus de la ligne de flottaison, et il tient collé
+              pendant que la colonne de droite défile. */}
+          <div className="relative mx-auto aspect-[3/4] w-full bg-gris-clair lg:sticky lg:top-[88px] lg:max-w-[calc((100vh-120px)*0.75)] lg:self-start">
+            <VisuelProduit
+              article={article}
+              look={looksProposes}
+              loading="eager"
+              className="h-full w-full object-cover"
+            />
 
             {remise ? (
               <span className="absolute left-0 top-5 bg-noir-encre px-3 py-1.5 font-sans text-[11px] font-medium uppercase tracking-[0.1em] text-white">

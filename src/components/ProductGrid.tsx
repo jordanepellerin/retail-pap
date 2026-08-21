@@ -34,9 +34,15 @@ export function CarteProduit({ article }: { article: Article }) {
     <article className="group">
       {/* Toute la carte mène à la fiche produit — visuel, nom et prix compris. */}
       <Link to={`/produit/${article.id}`} className="block">
+        {/* Le mannequin porte la tenue complète, comme sur la fiche : une carte
+            qui montrerait la pièce seule ferait mentir la fiche qu'elle ouvre.
+            La vignette est en 3:4, le ratio des photos — rien n'est rogné.
+            Repli sur la photo de pièce pour ce qui n'a pas de look : chaussures
+            et accessoires, photographiés à plat. */}
         <div className="relative aspect-[3/4] overflow-hidden bg-gris-clair">
           <VisuelProduit
             article={article}
+            look
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />

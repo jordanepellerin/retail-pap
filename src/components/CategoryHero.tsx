@@ -55,8 +55,12 @@ export default function CategoryHero() {
           </button>
         </div>
 
+        {/* Bandeau éditorial : le cadre est en 4:3, il ne montre donc qu'une
+            bande de la photo — raison de plus pour y mettre le look, dont la
+            chemise, la cravate et la ceinture tombent justement dans cette
+            bande, plutôt qu'un buste sans rien dessous. */}
         <div className="order-first aspect-[4/3] w-full overflow-hidden bg-gris-clair lg:order-none">
-          <VisuelProduit article={article} className="h-full w-full object-cover" />
+          <VisuelProduit article={article} look className="h-full w-full object-cover" />
         </div>
       </div>
 
