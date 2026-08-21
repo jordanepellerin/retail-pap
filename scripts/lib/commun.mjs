@@ -13,6 +13,11 @@ export const SORTIE = join(RACINE, 'public', 'produits')
 // ─────────────────────────────── .env.local
 // Lu manuellement (pas de dépendance dotenv) : une variable déjà présente dans
 // le shell (CI, export préalable) garde toujours la priorité sur le fichier.
+//
+// Une ligne SANS VALEUR est ignorée, elle ne réserve pas la variable. C'est le
+// cas juste après `cp .env.example .env.local` : le modèle porte un
+// `GOOGLE_API_KEY=` vide, et sans cette règle il l'emportait sur la vraie clé
+// ajoutée plus bas dans le fichier — première occurrence gagnante.
 export function chargerEnvLocal() {
   const chemin = join(RACINE, '.env.local')
   if (!existsSync(chemin)) return
@@ -29,7 +34,7 @@ export function chargerEnvLocal() {
     ) {
       valeur = valeur.slice(1, -1)
     }
-    if (cle && !(cle in process.env)) process.env[cle] = valeur
+    if (cle && valeur && !(cle in process.env)) process.env[cle] = valeur
   }
 }
 
