@@ -49,6 +49,7 @@ npx vercel dev               # http://localhost:3000
 | `npm run preview`   | Prévisualise le build de production               |
 | `npm run typecheck` | Vérifie les types (`tsc --noEmit`, `src` + `api`) |
 | `npm run photos`    | Génère les **vraies photos** produit (Gemini, clé requise) |
+| `npm run looks`     | Génère les photos de **look complet** portées par le mannequin |
 | `npm run visuels`   | Régénère les **placeholders SVG** de `public/produits/` |
 
 ## Le widget — parcours
@@ -180,6 +181,36 @@ matière, couleur, coupe, `descriptionRendu`. L'image et sa fiche ne peuvent don
 pas diverger : c'est la fiche qui décrit l'image. Le script applique la même
 cascade de modèles que le serveur et reprend les manquantes à chaque relance.
 
+### Le troisième niveau : la photo de look
+
+Sur la photo produit, **chaque pièce est seule** — c'est ce qu'attendent la
+vignette du tiroir « Acheter le look », la planche et la référence de fidélité
+envoyée au rendu. Mais c'est aussi ce qui faisait mentir la fiche produit : le
+mannequin portait le costume et une chemise quelconque, pendant que le tiroir
+ouvert à côté détaillait chemise, cravate, ceinture et souliers.
+
+`npm run looks` écrit donc un SECOND fichier par pièce portée,
+`<slug>-look.jpg` : le même mannequin, portant cette fois **la tenue complète**,
+celle que `composerLook()` compose à partir des `accords` du catalogue. La fiche
+produit sert ce visuel en grand (`visuelsLook()`), et retombe toute seule sur la
+photo de pièce quand il n'existe pas.
+
+```bash
+npm run looks -- --simuler               # les tenues qui seront photographiées
+npm run looks -- --simuler c1            # …et le prompt exact envoyé pour c1
+GOOGLE_API_KEY=... npm run looks         # ce qui manque
+GOOGLE_API_KEY=... npm run looks -- --force    # tout régénérer
+```
+
+Les photos de pièce servent de **références** au modèle : chaque article garde
+donc la couleur et la matière qu'il a sur sa propre fiche. Il faut les avoir
+générées d'abord (`npm run photos`), et relancer `npm run looks -- --force`
+après les avoir refaites.
+
+Seules les familles **portées** (costume, veste, pantalon, chemise, maille) ont
+une photo de look : chaussures et accessoires sont photographiés à plat, leur
+fiche ne montre aucun mannequin et ne contredit donc rien.
+
 > Tant que les photos ne sont pas générées, la fidélité de l'essayage IA reste
 > limitée : le modèle image reproduit ce qu'il voit sur la référence produit, et
 > un aplat vectoriel ne porte ni matière ni tombé.
@@ -253,7 +284,11 @@ src/
 ├── pages/                 # FicheProduit (/produit/:id), AdminPrompts (/admin)
 ├── types/                 # index.ts (domaine), ai.ts (contrats), admin.ts
 ├── App.tsx, main.tsx, index.css
-scripts/generer-visuels.mjs # génère public/produits/*.svg
+scripts/
+├── generer-visuels.mjs    # placeholders public/produits/*.svg
+├── generer-photos.mjs     # photos de pièce  public/produits/*.jpg
+├── generer-looks.mjs      # photos de look   public/produits/*-look.jpg
+└── lib/commun.mjs         # clé, lecture du catalogue, cascade de modèles
 ```
 
 > Le catalogue est mocké en local et le formulaire de contact final est simulé

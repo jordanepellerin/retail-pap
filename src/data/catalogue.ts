@@ -25,9 +25,33 @@ export function formatPrix(euros: number): string {
  * modèle d'essayage : lui donner le SVG stylisé pour référence lui fait rendre
  * des aplats vectoriels au lieu d'étoffes. `Article.image` ne doit jamais être
  * consommé directement.
+ *
+ * La photo servie ici montre la PIÈCE SEULE — c'est ce qu'attendent la vignette
+ * du tiroir « Acheter le look », la planche et la référence de fidélité du
+ * rendu. Le mannequin portant la tenue complète est un autre fichier, cf.
+ * `visuelsLook` ci-dessous.
  */
 export function visuelArticle(article: Article): { src: string; secours: string } {
   return { src: article.image.replace(/\.svg$/, '.jpg'), secours: article.image }
+}
+
+/**
+ * Visuels du LOOK d'un article, du plus complet au plus sûr : le mannequin
+ * portant la tenue entière (`<slug>-look.jpg`, écrit par
+ * `scripts/generer-looks.mjs`), puis la photo de la pièce seule, puis le SVG.
+ *
+ * C'est ce que la fiche produit montre en grand, pour que le mannequin ne
+ * contredise pas le tiroir « Acheter le look » ouvert à côté de lui.
+ *
+ * Toutes les pièces n'ont pas de photo de look — chaussures et accessoires sont
+ * photographiés à plat, et rien ne les contredit. Le repli sur la photo de
+ * pièce n'est donc pas un cas d'erreur : c'est le fonctionnement normal pour
+ * ces familles-là, et c'est aussi ce qui fait tourner la vitrine avant que le
+ * script n'ait tourné.
+ */
+export function visuelsLook(article: Article): string[] {
+  const { src, secours } = visuelArticle(article)
+  return [src.replace(/\.jpg$/, '-look.jpg'), src, secours]
 }
 
 export const LIBELLES_COUPE: Record<NonNullable<Article['coupe']>, string> = {

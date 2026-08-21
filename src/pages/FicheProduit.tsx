@@ -142,9 +142,15 @@ export default function FicheProduit() {
               « Acheter le look », ancré en bas du visuel, passe sous la ligne de
               flottaison) et reste collé pendant que la colonne de droite défile. */}
           <div className="relative bg-gris-clair lg:sticky lg:top-[88px] lg:self-start">
+            {/* Le mannequin porte la TENUE COMPLÈTE — celle-là même que « Acheter
+                le look » détaille juste à côté. Sans ça, le visiteur ouvre le
+                tiroir et n'y retrouve que le costume : le reste du look
+                contredit ce qu'il a sous les yeux. Repli sur la photo de la
+                pièce seule quand elle n'a pas de photo de look. */}
             <div className="aspect-[3/4] w-full lg:aspect-auto lg:h-[calc(100vh-120px)]">
               <VisuelProduit
                 article={article}
+                look={looksProposes}
                 loading="eager"
                 className="h-full w-full object-cover"
               />

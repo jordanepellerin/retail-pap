@@ -26,6 +26,29 @@ mais ils ont une limite importante :
 Le champ `gradient` de chaque article sert de repli visuel : si un fichier est
 absent ou illisible, l'interface affiche le dégradé plutôt qu'une image cassée.
 
+## Les photos de look (`<slug>-look.jpg`)
+
+Les `<slug>.jpg` ci-dessus montrent **une pièce à la fois** : c'est la vignette
+du tiroir « Acheter le look », et la référence de fidélité envoyée au modèle
+d'essayage, qui doit pouvoir isoler chaque article.
+
+À côté d'eux, `<slug>-look.jpg` montre le mannequin portant la **tenue
+complète** composée autour de la pièce (celle du tiroir « Acheter le look »).
+C'est ce que la fiche produit affiche en grand :
+
+```bash
+GOOGLE_API_KEY=... npm run looks
+```
+
+Le script est `scripts/generer-looks.mjs`. Il ne concerne que les familles
+portées — costume, veste, pantalon, chemise, maille : chaussures et accessoires
+sont photographiés à plat, leur fiche ne montre aucun mannequin. Un fichier
+absent n'est pas une erreur : la fiche retombe sur `<slug>.jpg`.
+
+Ces photos se composent **à partir des `<slug>.jpg`**, qui servent de référence
+au modèle. Après avoir refait une photo de pièce, relancer
+`npm run looks -- --force` pour que les looks qui l'emploient suivent.
+
 ## Régénérer les placeholders
 
 ```bash
