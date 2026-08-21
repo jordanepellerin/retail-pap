@@ -55,11 +55,16 @@ export default function CategoryHero() {
           </button>
         </div>
 
-        {/* Bandeau éditorial : le cadre est en 4:3, il ne montre donc qu'une
-            bande de la photo — raison de plus pour y mettre le look, dont la
-            chemise, la cravate et la ceinture tombent justement dans cette
-            bande, plutôt qu'un buste sans rien dessous. */}
-        <div className="order-first aspect-[4/3] w-full overflow-hidden bg-gris-clair lg:order-none">
+        {/* Le mannequin porte le look complet, et le cadre prend le RATIO 3:4
+            de la photo. En 4:3, ce bandeau n'en montrait qu'une bande de 56 % :
+            la tête était coupée au menton et les chaussures hors champ — un
+            cadrage qui se lit comme un défaut, pas comme un parti pris.
+
+            Une image verticale pleine largeur ferait en revanche 891 px de
+            haut et mangerait l'écran : comme sur la fiche produit, c'est la
+            hauteur de fenêtre qui plafonne la largeur, ce qui rend au bandeau
+            à peu près la hauteur qu'il avait en 4:3. */}
+        <div className="order-first mx-auto aspect-[3/4] w-full overflow-hidden bg-gris-clair lg:order-none lg:max-w-[calc((100vh-260px)*0.75)]">
           <VisuelProduit article={article} look className="h-full w-full object-cover" />
         </div>
       </div>
