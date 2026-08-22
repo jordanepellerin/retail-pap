@@ -93,7 +93,10 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
   }
 
   // ── Rendu ─────────────────────────────────────────────────────────────────
-  const notes = `Look complet autour de « ${principal.nom} » ${principal.couleur.toLowerCase()}. ${principal.descriptionCourte}`
+  // Les notes décrivent l'ESPRIT de la tenue, jamais son cadrage : elles sont
+  // injectées dans les consignes de rendu, où « look complet » tirait le modèle
+  // vers la photo de lookbook en pied — à l'opposé de la photo du visiteur.
+  const notes = `${principal.couleur} ${principal.nom.toLowerCase()}. ${principal.descriptionCourte}`
 
   const lancerEssayage = async () => {
     if (!photo || pieces.length === 0) return
@@ -226,7 +229,8 @@ export default function ModaleEssayage({ look, onFermer }: ModaleEssayageProps) 
                   <p className="mt-4 font-sans text-[13px] font-light leading-relaxed text-gris-texte">
                     De face, en pied ou à mi-corps, sur un fond dégagé : c’est ce qui donne le
                     meilleur résultat. Vos vêtements sont remplacés par les pièces du look — votre
-                    visage et le décor ne changent pas.
+                    visage, votre cadrage et le décor ne changent pas. Une pièce hors champ de
+                    votre photo, des souliers sur un portrait par exemple, n’est pas essayée.
                   </p>
 
                   <div className="mt-5">

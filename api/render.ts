@@ -45,6 +45,13 @@ function ligneImage(article: RenderArticle, index: number): string {
  * personne et du décor, correspondance pièce ↔ emplacement, interdiction de
  * toucher au reste) est verrouillé ici ; les consignes de réalisme textile
  * viennent du store (éditables depuis /admin).
+ *
+ * La règle de CADRE n'est pas une redite de la préservation : elle tranche le
+ * cas où une pièce n'a pas d'équivalent VISIBLE sur la photo. Un look complet
+ * essayé sur un portrait à mi-corps fournit un pantalon et des chaussures que
+ * la photo ne montre pas — et le modèle, sommé de les faire porter, dézoomait
+ * en inventant un corps entier, donc une autre personne. Il doit au contraire
+ * laisser cette pièce de côté.
  */
 function construirePromptRendu(
   config: PromptConfig,
@@ -72,6 +79,8 @@ IMAGES SUIVANTES : les pièces à lui faire porter.
 ${lignes}
 
 Ta SEULE modification autorisée : remplacer, de façon PHOTORÉALISTE, les vêtements que porte la personne par ceux des images suivantes. Chaque pièce remplace UNIQUEMENT l'élément indiqué ci-dessus. ${phraseConservation}
+
+CADRE DE LA PHOTO : le cadrage, la distance de prise de vue et l'angle sont INTOUCHABLES. Tu ne dézoomes pas, tu n'élargis pas le champ, tu ne redresses pas la prise de vue, et tu n'ajoutes AUCUNE partie du corps absente de la photo d'origine. Une pièce dont l'emplacement est hors champ — des chaussures sur un portrait à mi-corps, un pantalon sur un plan buste — est simplement IGNORÉE. Mieux vaut une pièce non essayée qu'une photo recomposée : si tu te surprends à dessiner des jambes, des pieds ou un buste qui n'étaient pas là, c'est que tu as quitté la photo du client.
 
 ${consignes}
 
