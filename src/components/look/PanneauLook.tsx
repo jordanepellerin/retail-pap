@@ -69,9 +69,21 @@ export default function PanneauLook({ look, onFermer, onEssayer }: PanneauLookPr
                   tabIndex={-1}
                   aria-hidden="true"
                 >
+                  {/* Même ratio 3:4 que le grand visuel : la vignette de tête
+                      est LA MÊME PHOTO que celle de la fiche, sans recadrage. */}
                   <div className="aspect-[3/4]">
                     <VisuelProduit
                       article={article}
+                      // La pièce regardée est montrée PORTÉE AVEC LA TENUE — la
+                      // photo de look de la fiche, à l'identique. Un costume
+                      // photographié seul en tête du tiroir contredisait le
+                      // grand visuel resté visible derrière : deux images de la
+                      // même pièce, habillée d'un côté, nue de l'autre.
+                      // Les pièces qui accompagnent gardent, elles, leur photo
+                      // de pièce : c'est ce qu'on ajoute au panier qu'on y
+                      // détaille, et trois vignettes du même look ne se
+                      // distingueraient plus les unes des autres.
+                      look={i === 0}
                       decoratif
                       loading="lazy"
                       className="h-full w-full object-cover"

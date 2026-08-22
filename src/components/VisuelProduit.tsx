@@ -9,10 +9,13 @@ interface VisuelProduitProps {
   loading?: 'lazy' | 'eager'
   /**
    * Montrer le mannequin portant la TENUE COMPLÈTE plutôt que la pièce seule
-   * (`<slug>-look.jpg`). Réservé au grand visuel de la fiche produit : partout
-   * ailleurs — grille, vignettes du tiroir, planche — c'est la pièce qu'on
-   * achète qu'il faut voir. Repli automatique sur la photo de pièce quand la
-   * photo de look n'existe pas.
+   * (`<slug>-look.jpg`). Réservé aux endroits qui parlent de LA PIÈCE REGARDÉE :
+   * la carte de la grille, le grand visuel de la fiche, et la vignette de tête
+   * du tiroir « Acheter le look » — ces trois-là montrent la même pièce et
+   * doivent montrer la même photo. Partout ailleurs — pièces qui accompagnent,
+   * planche, références envoyées à l'essayage — c'est la pièce qu'on achète
+   * qu'il faut voir. Repli automatique sur la photo de pièce quand la photo de
+   * look n'existe pas.
    */
   look?: boolean
   /** Vignette purement décorative : masquée aux lecteurs d'écran. */

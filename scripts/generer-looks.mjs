@@ -10,10 +10,12 @@
 // (la clé se pose une fois pour toutes dans .env.local, cf. generer-photos.mjs)
 //
 // POURQUOI un second fichier plutôt que remplacer `<slug>.jpg` : la photo de
-// pièce reste la référence de fidélité envoyée au modèle d'essayage et la
-// vignette du tiroir « Acheter le look » — elle doit montrer LA pièce, seule.
-// Le look, lui, est ce que la fiche produit met en grand : `<slug>-look.jpg`.
-// La fiche retombe d'elle-même sur `<slug>.jpg` quand le look n'existe pas
+// pièce reste la référence de fidélité envoyée au modèle d'essayage, et la
+// vignette des pièces QUI ACCOMPAGNENT dans le tiroir « Acheter le look » —
+// elle doit y montrer LA pièce, seule. Le look, lui, est ce qu'on met en grand
+// partout où c'est la pièce regardée qui parle : carte de la grille, visuel de
+// la fiche, et vignette de tête du tiroir (`<slug>-look.jpg`). L'affichage
+// retombe de lui-même sur `<slug>.jpg` quand le look n'existe pas
 // (cf. `visuelsLook` dans src/data/catalogue.ts) — rien à déclarer.
 //
 // La tenue photographiée est celle que le site affiche : même composition que
