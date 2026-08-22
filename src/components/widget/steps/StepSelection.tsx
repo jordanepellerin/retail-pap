@@ -79,6 +79,14 @@ function CarrouselCategorie({
                 >
                   <VisuelProduit
                     article={article}
+                    // Le mannequin porte la TENUE, comme sur les cartes de la
+                    // boutique et sur la fiche : c'est la même pièce, montrée
+                    // au même endroit du parcours, elle doit avoir la même
+                    // photo. Une veste photographiée seule — smoking ouvert sur
+                    // le torse nu — se présentait mal là où le visiteur choisit.
+                    // Repli sur la photo de pièce pour ce qui n'a pas de look :
+                    // chaussures et accessoires, photographiés à plat.
+                    look
                     alt={article.nom}
                     className="h-full w-full object-contain"
                   />
